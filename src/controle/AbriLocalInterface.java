@@ -20,7 +20,6 @@ import modele.NoeudCentralException;
  */
 public interface AbriLocalInterface
 {
-
 	public String getUrl();
 
 	public boolean estConnecte();
@@ -36,8 +35,6 @@ public interface AbriLocalInterface
 	public void enregistrerAbri(String url, String groupe, AbriRemoteInterface distant);
 
 	public void supprimerAbri(String url);
-
-	public void recevoirAutorisation();
 
 	public void changerGroupe(String groupe);
 

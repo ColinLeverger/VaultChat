@@ -5,14 +5,7 @@
  */
 package controle;
 
-import java.net.MalformedURLException;
-import java.rmi.Naming;
-import java.rmi.NotBoundException;
-import java.rmi.RemoteException;
 import java.util.LinkedList;
-
-import modele.AbriException;
-import modele.NoeudCentralException;
 
 /**
  * @author Gwenole Lecorve
@@ -36,11 +29,14 @@ public class NoeudControleur implements ControleurInterface
 	// renvoie vrai si la SC est immédiatement disponible
 	public synchronized boolean demanderSectionCritique(final String urlDemandeur)
 	{
+		assert urlDemandeur != null;
+		System.out.println("@@@@@@@@ appel de demander Section Critique avec pour urldemandeur --> " + urlDemandeur);
+
 		if ( !this.used ) {
 			this.used = true;
-			this.urlEnSC = urlDemandeur;
+			setUrlEnSC(urlDemandeur);
 		} else {
-			if ( !listeAttenteSectionCritique.contains(urlDemandeur) ) {
+			if ( !listeAttenteSectionCritique.contains(urlDemandeur) ) { // On n'ajoute dans la liste d'attente qu'une seule fois, on garde la date de la première demande (ordre dans la liste).
 				this.listeAttenteSectionCritique.add(urlDemandeur);
 				System.out.println(this.urlNoeud + ": \t  SC pas dispo, mise en attente.");
 			}
@@ -49,53 +45,30 @@ public class NoeudControleur implements ControleurInterface
 	}
 
 	@Override
-	public synchronized void signalerAutorisation(final String urlDemandeur) throws MalformedURLException, RemoteException, NotBoundException
+	public String quitterSectionCritique(final String url) throws IllegalAccessException
 	{
-		// Récupérer l'interface de l'abris que l'on veut contacter
-		AbriRemoteInterface abriRemote = (AbriRemoteInterface) Naming.lookup(urlDemandeur); // @@@ mais on l'avais déjà dans NoeudBackend :(
-
-		// Lui indiquer qu'il a accès à la section critique
-		try {
-			abriRemote.recevoirSC();
-		} catch ( AbriException e ) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch ( NoeudCentralException e ) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
-		System.out.println(this.urlNoeud + ": \tSignalement de l'autorisation");
-	}
-
-	@Override
-	public synchronized String quitterSectionCritique(final String url) throws IllegalAccessException
-	{
+		// TODO: Trouver pourquoi urlEnSC est à null en entrée de la méthode pour un 2eme appel. Ne doit pas l'être !! (initialisé dans "demanderSC"
 		System.out.println("ON VEUT QUITTER LA SECTION CRITIQUE --> ON EST : " + url + " ET EN SC IL Y A : " + this.urlEnSC);
 		if ( !urlEnSC.equals(url) ) {
 			throw new IllegalAccessException("Pas le bon abris qui demande à quitter la SC");
 		}
 
-		// Libère la SC
-		urlEnSC = null;
-
 		String prochain = null;
 		if ( !listeAttenteSectionCritique.isEmpty() ) {
 			prochain = listeAttenteSectionCritique.getFirst();
 		}
+
+		// Libère la SC
+		System.out.println("@@@ on libère la sc dont on met à null, c'est normal");
+		setUrlEnSC(null);
+
 		return prochain;
 	}
 
-	@Override
-	public void enregistrerControleur(final String urlDistant, final String groupe)
+	public void setUrlEnSC(final String urlEnSC)
 	{
-		System.out.println(this.urlNoeud + ": \tEnregistrement du controleur " + urlDistant);
-	}
-
-	@Override
-	public void supprimerControleur(final String urlDistant)
-	{
-		System.out.println(this.urlNoeud + ": \tSuppression du controleur " + urlDistant);
+		System.out.println("@@@@@@@@ appel de setUrlEnSC avec pour valeur --> " + urlEnSC);
+		this.urlEnSC = urlEnSC;
 	}
 
 }

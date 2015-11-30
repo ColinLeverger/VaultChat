@@ -21,7 +21,6 @@ import modele.NoeudCentralException;
  */
 public interface NoeudCentralRemoteInterface extends Remote
 {
-
 	void modifierAiguillage(String depuisUrl, ArrayList<String> versListeUrl) throws RemoteException, NoeudCentralException;
 
 	void transmettreMessage(Message message) throws RemoteException, AbriException, NoeudCentralException;
@@ -33,7 +32,5 @@ public interface NoeudCentralRemoteInterface extends Remote
 	void quitterSectionCritique(String url) throws RemoteException;
 
 	void deconnecterAbri(String url) throws RemoteException;
-
-	//  void supprimerAbri(String url) throws RemoteException;
 
 }

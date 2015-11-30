@@ -11,7 +11,6 @@ import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
-import java.util.Iterator;
 
 import modele.AbriException;
 import modele.AnnuaireNoeudCentral;
@@ -73,44 +72,32 @@ public class NoeudCentralBackend extends UnicastRemoteObject implements NoeudCen
 	}
 
 	@Override
-	public synchronized void modifierAiguillage(final String depuisUrl, final ArrayList<String> versUrl) throws RemoteException, NoeudCentralException
+	public void modifierAiguillage(final String depuisUrl, final ArrayList<String> versUrl) throws RemoteException, NoeudCentralException
 	{
-		System.out.print(url + ": \tReconfiguration du r�seau de " + depuisUrl + " vers ");
-		Iterator<String> itr = versUrl.iterator();
-		while ( itr.hasNext() ) {
-			System.out.print(itr.next());
-		}
-		System.out.print("\n");
-
+		System.out.print(url + ": \tReconfiguration du r�seau de " + depuisUrl + " vers " + versUrl);
 		noeudCentral.reconfigurerAiguillage(depuisUrl, versUrl);
 	}
 
 	@Override
-	public synchronized void transmettreMessage(final Message message) throws RemoteException, AbriException, NoeudCentralException
+	// On doit avoir la section critique quand on est dans cette méthode. On ne doit pas quitter la SC dans cette méthode.
+	public void transmettreMessage(final Message message) throws RemoteException, AbriException, NoeudCentralException
 	{
 		System.out.println("@@@ ENTREE METHODE TRANSMETTRE MESSAGE DU NOEUD CENTRAL BACKEND");
+		modifierAiguillage(message.getUrlEmetteur(), message.getUrlDestinataire());
 		try {
 			noeudCentral.demarrerTransmission();
-			System.out.println(url + ": \tTransmission du message \"" + message.toString() + "\"");
-
-			ArrayList<String> abrisCible = noeudCentral.getVersUrl();
-			Iterator<String> itr = abrisCible.iterator();
-
-			while ( itr.hasNext() ) {
-				AbriRemoteInterface c = abris.chercherUrl(itr.next());
-				c.recevoirMessage(message);
+			// Tous les destinataires recoivent
+			for ( String abri : noeudCentral.getVersUrl() ) {
+				abris.chercherUrl(abri).recevoirMessage(message);
 			}
-		} catch ( RemoteException ex ) {
-			throw ex;
-		} catch ( AbriException ex ) {
-			throw ex;
+			System.out.println("@@@ ENVOIE DES MESSAGES TERMINES");
 		} finally {
 			noeudCentral.stopperTransmission();
 		}
 	}
 
 	@Override
-	public synchronized void creerAbri(final String urlAbriDistant) throws RemoteException, NotBoundException, MalformedURLException
+	public void creerAbri(final String urlAbriDistant) throws RemoteException, NotBoundException, MalformedURLException
 	{
 		System.out.println(url + ": \tEnregistrement de l'abri dans l'annuaire " + urlAbriDistant);
 		AbriRemoteInterface abriDistant = (AbriRemoteInterface) Naming.lookup(urlAbriDistant);
@@ -133,7 +120,7 @@ public class NoeudCentralBackend extends UnicastRemoteObject implements NoeudCen
 	}
 
 	@Override
-	public synchronized void quitterSectionCritique(final String url) throws RemoteException
+	public void quitterSectionCritique(final String url) throws RemoteException
 	{
 		String prochain = null;
 		try {
@@ -144,6 +131,7 @@ public class NoeudCentralBackend extends UnicastRemoteObject implements NoeudCen
 		}
 		if ( prochain != null ) { // On donne l'accès au prochain
 			try {
+				noeudControleur.setUrlEnSC(prochain);
 				abris.getAbrisDistants().get(prochain).recevoirSC();
 			} catch ( AbriException e ) {
 				// TODO Auto-generated catch block

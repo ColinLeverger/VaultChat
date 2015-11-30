@@ -460,6 +460,7 @@ public class AbriVue extends JFrame implements Observer
 			while ( emettreEnBoucle ) {
 				try {
 					backend.ajouterMessageAuTampon(emissionTextArea.getText());
+					Thread.sleep(100); //@@@ Maelig essaie de temper à virer FIXME TODO
 				} catch ( Exception ex ) {
 					ex.printStackTrace();
 					new ErrorDialog(parent, "Erreur lors de l'emission du message", ex.getMessage());
