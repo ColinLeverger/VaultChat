@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.Observable;
 
 /**
- * Classe qui simule le noeud central du réseau via l'abri entrants et les abris sortants
+ * Classe qui simule le noeud central du rï¿½seau via l'abri entrants et les abris sortants
  * @author Gwenole Lecorve
  * @author David Guennec
  */
@@ -30,14 +30,14 @@ public class NoeudCentral extends Observable {
     
     public String getDepuisUrl() throws NoeudCentralException {
         if (depuisUrl == null) {
-            throw new NoeudCentralException("Le noeud central n'est configuré pour aucun emetteur.");
+            throw new NoeudCentralException("Le noeud central n'est configurï¿½ pour aucun emetteur.");
         }
         return depuisUrl;
     }
     
     public ArrayList<String> getVersUrl() throws NoeudCentralException {
         if (versUrl == null) {
-            throw new NoeudCentralException("Le noeud central n'est configuré pour aucun destinataire.");
+            throw new NoeudCentralException("Le noeud central n'est configurï¿½ pour aucun destinataire.");
         }
         return versUrl;
     }

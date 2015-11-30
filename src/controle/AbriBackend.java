@@ -5,6 +5,8 @@
  */
 package controle;
 
+import modele.*;
+
 import java.net.MalformedURLException;
 import java.rmi.Naming;
 import java.rmi.NotBoundException;
@@ -16,14 +18,6 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import modele.Abri;
-import modele.AbriException;
-import modele.Adresses;
-import modele.AnnuaireAbri;
-import modele.Message;
-import modele.MessageType;
-import modele.NoeudCentralException;
 
 /**
  * @author Gwenole Lecorve
@@ -44,7 +38,7 @@ public class AbriBackend extends UnicastRemoteObject implements AbriLocalInterfa
 	public AbriBackend(final String _url, final Abri _abri) throws RemoteException
 	{
 		this.notreURL = _url;
-		System.out.println("CONSTRUCITON DE ABRI BACKEND AVEC POUR URL : " + _url + " OK.");
+		System.out.println("CONSTRUCTION DE ABRI BACKEND AVEC POUR URL : " + _url + " OK.");
 		this.noeudCentralUrl = "";
 		this.abri = _abri;
 		this.abrisDistants = new AnnuaireAbri();
@@ -156,8 +150,9 @@ public class AbriBackend extends UnicastRemoteObject implements AbriLocalInterfa
 	@Override
 	public void recevoirSC() throws AbriException, RemoteException, NoeudCentralException
 	{
-		System.out.println("Abris backend Recevoir SC --> url: " + this.notreURL + " viens de recevoir la SC");
+		System.out.println("Abris backend Recevoir SC --> url : " + this.notreURL + " viens de recevoir la SC");
 		// On envoi tout les messages en attentes
+		System.out.println("Les messages en attente sont : " + this.messagesEnAttente);
 		for ( Message message : this.messagesEnAttente ) {
 			System.out.println("Envoie d'un message depuis " + message.getUrlEmetteur() + "vers " + message.getUrlDestinataire() + " avec pour contenu: " + message.getContenu());
 			this.noeudCentral.transmettreMessage(message);
@@ -170,33 +165,31 @@ public class AbriBackend extends UnicastRemoteObject implements AbriLocalInterfa
 	@Override
 	public void ajouterMessageAuTampon(final String message) throws InterruptedException, RemoteException, AbriException, NoeudCentralException
 	{
-		ArrayList<String> copaings = calculCopains();
-		messagesEnAttente.add(new Message(this.notreURL, copaings, message, MessageType.SIGNALEMENT_DANGER));
+		calculCopains();
+		messagesEnAttente.add(new Message(this.notreURL, this.copains, message, MessageType.SIGNALEMENT_DANGER));
 		System.out.println("@@@ Ajout d'un message en attente et demande de la SC");
 		noeudCentral.demanderSectionCritique(notreURL);
 	}
 
-	private ArrayList<String> calculCopains()
+	private void calculCopains()
 	{
-		ArrayList<String> copaings = new ArrayList<>();
 		for ( Entry<String, String> entry : this.abrisDistants.getAbrisDistants().entrySet() ) {
 			if ( entry.getValue().equals(this.abri.donnerGroupe()) && !this.notreURL.equals(entry.getKey()) ) { // c'est un copain de notre zone mais que c'est pas nous
-				copaings.add(entry.getKey());
+				this.copains.add(entry.getKey());
 			}
 		}
-		return copaings;
 	}
 
 	@Override
 	public void enregistrerAbri(final String urlDistant, final String groupe, final AbriRemoteInterface distant)
 	{
+		System.out.println("Ajout de " + urlDistant + " dans la liste des abris distants de " + notreURL);
 		abrisDistants.ajouterAbriDistant(urlDistant, groupe);
 
 		if ( groupe.equals(abri.donnerGroupe()) ) {
 			this.copains.add(urlDistant);
+			System.out.println("Ajout de " + urlDistant + " dans la liste des copains de " + notreURL);
 		}
-
-		System.out.println(notreURL + ": \tEnregistrement de l'abri " + urlDistant);
 	}
 
 	@Override

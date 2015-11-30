@@ -40,6 +40,7 @@ public class AnnuaireAbri extends Observable
 		notifyObservers();
 	}
 
+	//TODO jamais mise à jour...
 	public void retirerAbriDistant(final String url)
 	{
 		this.abrisDistants.remove(url);
