@@ -52,6 +52,16 @@ public class NoeudCentralBackend extends UnicastRemoteObject implements NoeudCen
 		}
 	}
 
+	@Override
+	public synchronized void deconnecterAbri(final String url)
+	{
+		System.out.println("Deconnection de l'abri");
+		// Faire un broadcast pour les autres
+
+		// Mettre à jour son annuaire
+		abris.retirerAbriDistant(url);
+	}
+
 	public NoeudCentral getNoeudCentral()
 	{
 		return noeudCentral;
@@ -62,26 +72,25 @@ public class NoeudCentralBackend extends UnicastRemoteObject implements NoeudCen
 		return abris;
 	}
 
-	//	@Override
-	//	public synchronized void modifierAiguillage(final String depuisUrl, final ArrayList<String> versUrl) throws RemoteException, NoeudCentralException
-	//	{
-	//
-	//		System.out.print(url + ": \tReconfiguration du r�seau de " + depuisUrl + " vers ");
-	//		Iterator<String> itr = versUrl.iterator();
-	//		while ( itr.hasNext() ) {
-	//			System.out.print(itr.next());
-	//		}
-	//		System.out.print("\n");
-	//
-	//		noeudCentral.reconfigurerAiguillage(depuisUrl, versUrl);
-	//	}
+	@Override
+	public synchronized void modifierAiguillage(final String depuisUrl, final ArrayList<String> versUrl) throws RemoteException, NoeudCentralException
+	{
+		System.out.print(url + ": \tReconfiguration du r�seau de " + depuisUrl + " vers ");
+		Iterator<String> itr = versUrl.iterator();
+		while ( itr.hasNext() ) {
+			System.out.print(itr.next());
+		}
+		System.out.print("\n");
+
+		noeudCentral.reconfigurerAiguillage(depuisUrl, versUrl);
+	}
 
 	@Override
 	public synchronized void transmettreMessage(final Message message) throws RemoteException, AbriException, NoeudCentralException
 	{
+		System.out.println("@@@ ENTREE METHODE TRANSMETTRE MESSAGE DU NOEUD CENTRAL BACKEND");
 		try {
 			noeudCentral.demarrerTransmission();
-
 			System.out.println(url + ": \tTransmission du message \"" + message.toString() + "\"");
 
 			ArrayList<String> abrisCible = noeudCentral.getVersUrl();
@@ -108,29 +117,23 @@ public class NoeudCentralBackend extends UnicastRemoteObject implements NoeudCen
 		abris.ajouterAbriDistant(urlAbriDistant, abriDistant);
 	}
 
-	//	@Override
-	//	public synchronized void supprimerAbri(final String urlAbriDistant) throws RemoteException
-	//	{
-	//		System.out.println(url + ": \tSuppression de l'abri de l'annuaire " + urlAbriDistant);
-	//		abris.retirerAbriDistant(urlAbriDistant);
-	//	}
-
 	@Override
-	public void demanderSectionCritique(final String url) throws RemoteException
+	public synchronized void demanderSectionCritique(final String url) throws RemoteException
 	{
 		boolean available = noeudControleur.demanderSectionCritique(url);
 		if ( available ) { // SC dispo immédiatement
 			try {
+				System.out.println("SC dispo on donne l'autorisaiton");
 				abris.getAbrisDistants().get(url).recevoirSC();
 			} catch ( AbriException | NoeudCentralException e ) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-		} // sinon on est mis en attente (fait dans le controleur)
+		}
 	}
 
 	@Override
-	public void quitterSectionCritique(final String url) throws RemoteException
+	public synchronized void quitterSectionCritique(final String url) throws RemoteException
 	{
 		String prochain = null;
 		try {
@@ -139,7 +142,7 @@ public class NoeudCentralBackend extends UnicastRemoteObject implements NoeudCen
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		if ( prochain != null ) { // On donne l'accès au
+		if ( prochain != null ) { // On donne l'accès au prochain
 			try {
 				abris.getAbrisDistants().get(prochain).recevoirSC();
 			} catch ( AbriException e ) {

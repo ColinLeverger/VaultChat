@@ -20,7 +20,6 @@ import modele.NoeudCentralException;
  */
 public class NoeudControleur implements ControleurInterface
 {
-
 	protected String urlNoeud;
 	private LinkedList<String> listeAttenteSectionCritique; // On stock l'url des abris en attente
 	private String urlEnSC;
@@ -28,6 +27,7 @@ public class NoeudControleur implements ControleurInterface
 
 	public NoeudControleur(final String url)
 	{
+		this.listeAttenteSectionCritique = new LinkedList<>();
 		this.urlNoeud = url;
 		this.used = false;
 	}
@@ -36,13 +36,14 @@ public class NoeudControleur implements ControleurInterface
 	// renvoie vrai si la SC est immédiatement disponible
 	public synchronized boolean demanderSectionCritique(final String urlDemandeur)
 	{
-		System.out.println(this.urlNoeud + ": \tDemande de section critique enregistree");
-
 		if ( !this.used ) {
 			this.used = true;
 			this.urlEnSC = urlDemandeur;
 		} else {
-			this.listeAttenteSectionCritique.add(urlDemandeur);
+			if ( !listeAttenteSectionCritique.contains(urlDemandeur) ) {
+				this.listeAttenteSectionCritique.add(urlDemandeur);
+				System.out.println(this.urlNoeud + ": \t  SC pas dispo, mise en attente.");
+			}
 		}
 		return used;
 	}
@@ -68,17 +69,17 @@ public class NoeudControleur implements ControleurInterface
 	}
 
 	@Override
-	public String quitterSectionCritique(final String url) throws IllegalAccessException
+	public synchronized String quitterSectionCritique(final String url) throws IllegalAccessException
 	{
-		String prochain = null;
+		System.out.println("ON VEUT QUITTER LA SECTION CRITIQUE --> ON EST : " + url + " ET EN SC IL Y A : " + this.urlEnSC);
 		if ( !urlEnSC.equals(url) ) {
 			throw new IllegalAccessException("Pas le bon abris qui demande à quitter la SC");
 		}
 
 		// Libère la SC
-		used = false;
 		urlEnSC = null;
 
+		String prochain = null;
 		if ( !listeAttenteSectionCritique.isEmpty() ) {
 			prochain = listeAttenteSectionCritique.getFirst();
 		}

@@ -9,6 +9,7 @@ import java.net.MalformedURLException;
 import java.rmi.NotBoundException;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
+import java.util.ArrayList;
 
 import modele.AbriException;
 import modele.Message;
@@ -21,7 +22,7 @@ import modele.NoeudCentralException;
 public interface NoeudCentralRemoteInterface extends Remote
 {
 
-	//   void modifierAiguillage(String depuisUrl, ArrayList<String> versListeUrl) throws RemoteException, NoeudCentralException;
+	void modifierAiguillage(String depuisUrl, ArrayList<String> versListeUrl) throws RemoteException, NoeudCentralException;
 
 	void transmettreMessage(Message message) throws RemoteException, AbriException, NoeudCentralException;
 
@@ -30,6 +31,8 @@ public interface NoeudCentralRemoteInterface extends Remote
 	void demanderSectionCritique(String url) throws RemoteException;
 
 	void quitterSectionCritique(String url) throws RemoteException;
+
+	void deconnecterAbri(String url) throws RemoteException;
 
 	//  void supprimerAbri(String url) throws RemoteException;
 

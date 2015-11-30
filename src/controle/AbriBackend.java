@@ -12,8 +12,8 @@ import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -33,29 +33,27 @@ public class AbriBackend extends UnicastRemoteObject implements AbriLocalInterfa
 {
 	private static final long serialVersionUID = -7291203652359910179L;
 
-	protected String url;
+	protected final String url;
 	protected String controleurUrl;
 	protected String noeudCentralUrl;
-
 	protected Abri abri;
 	protected NoeudCentralRemoteInterface noeudCentral;
-
 	protected AnnuaireAbri abrisDistants; // Map<Url,Groupe>
 	protected ArrayList<String> copains; // Les urls des autres membres du groupe de l'abri courant // Pas dans l'annuaire -> imposer la gestion d'une liste locale aux abris pour les groupes
+	protected List<Message> messagesEnAttente;
 
-	//protected Semaphore semaphore;
+	protected boolean enSC;
 
 	public AbriBackend(final String _url, final Abri _abri) throws RemoteException
 	{
 		this.url = _url;
+		System.out.println("CONSTRUCITON DE ABRI BACKEND AVEC POUR URL : " + _url + " OK.");
 		this.controleurUrl = _url + "/controleur";
 		this.noeudCentralUrl = "";
 		this.abri = _abri;
-
 		this.abrisDistants = new AnnuaireAbri();
 		this.copains = new ArrayList<>();
-
-		//	this.semaphore = new Semaphore(0, true);
+		this.messagesEnAttente = new ArrayList<>();
 	}
 
 	/**
@@ -135,8 +133,10 @@ public class AbriBackend extends UnicastRemoteObject implements AbriLocalInterfa
 	@Override
 	public void deconnecterAbri() throws AbriException, RemoteException, MalformedURLException, NotBoundException
 	{
-		Set<String> urlDestinataires = abrisDistants.getAbrisDistants().keySet();
-		this.abri.ajouterMessage(new Message(this.url, new ArrayList<>(urlDestinataires), MessageType.SUPPRESSION));
+		noeudCentral.deconnecterAbri(this.url);
+
+		noeudCentralUrl = "";
+		noeudCentral = null;
 
 		this.abrisDistants.vider();
 		this.abri.deconnecter(); // Abri
@@ -159,11 +159,15 @@ public class AbriBackend extends UnicastRemoteObject implements AbriLocalInterfa
 	}
 
 	@Override
-	public void recevoirSC() throws AbriException, RemoteException, NoeudCentralException
+	public synchronized void recevoirSC() throws AbriException, RemoteException, NoeudCentralException
 	{
+		System.out.println("Abris backend Recevoir SC --> url: " + this.url + " viens de recevoir la SC");
 		//	semaphore.acquire();
 		// On envoi tout les messages en attentes
-		for ( Message message : this.abri.lireTampon() ) {
+		System.out.println("TAILLE DE MESSAGES EN ATTENTE --> " + messagesEnAttente.size());
+		for ( Message message : this.messagesEnAttente ) {
+			System.out.println("Envoie d'un message depuis " + message.getUrlEmetteur() + "vers " + message.getUrlDestinataire() + " avec pour contenu: " + message.getContenu());
+			noeudCentral.modifierAiguillage(this.url, message.getUrlDestinataire());
 			this.noeudCentral.transmettreMessage(message);
 		}
 		// On rends la section critique
@@ -171,16 +175,22 @@ public class AbriBackend extends UnicastRemoteObject implements AbriLocalInterfa
 	}
 
 	@Override
-	public void emettreMessage(final String message) throws InterruptedException, RemoteException, AbriException, NoeudCentralException
+	public void ajouterMessageAuTampon(final String message) throws InterruptedException, RemoteException, AbriException, NoeudCentralException
 	{
+		ArrayList<String> copaings = calculCopains();
+		messagesEnAttente.add(new Message(this.url, copaings, message, MessageType.SIGNALEMENT_DANGER));
 		noeudCentral.demanderSectionCritique(url);
+	}
+
+	private ArrayList<String> calculCopains()
+	{
 		ArrayList<String> copaings = new ArrayList<>();
 		for ( Entry<String, String> entry : this.abrisDistants.getAbrisDistants().entrySet() ) {
-			if ( entry.getValue().equals(this.abri.donnerGroupe()) ) { // c'est un copain de notre zone
+			if ( entry.getValue().equals(this.abri.donnerGroupe()) && !this.url.equals(entry.getKey()) ) { // c'est un copain de notre zone mais que c'est pas nous
 				copaings.add(entry.getKey());
 			}
 		}
-		abri.ajouterMessage(new Message(this.url, copains, message, MessageType.SIGNALEMENT_DANGER));
+		return copaings;
 	}
 
 	@Override
@@ -239,11 +249,11 @@ public class AbriBackend extends UnicastRemoteObject implements AbriLocalInterfa
 		}
 	}
 
-	/*
-	 * @Override public synchronized void enregistrerControleurNoeud(String
-	 * urlDistante, String groupe) {
-	 * controleur.enregistrerControleur(urlDistante, groupe); }
-	 */
+	//	@Override
+	//	public synchronized void enregistrerControleurNoeud(final String urlDistante, final String groupe)
+	//	{
+	//		noeudControleur.enregistrerControleur(urlDistante, groupe);
+	//	}
 
 	/*
 	 * @Override public synchronized void supprimerControleurNoeud(String
