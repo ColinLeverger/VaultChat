@@ -11,45 +11,69 @@ import java.util.ArrayList;
 
 /**
  * Classe representant une information envoyee par un abri vers un autre
+ *
  * @author Gwenole Lecorve
  * @author David Guennec
  */
-public class Message implements Serializable {
+public class Message implements Serializable
+{
+	private static final long serialVersionUID = 528762786790366521L;
+	protected String urlEmetteur;
+	protected ArrayList<String> urlDestinataire;
+	protected String contenu; // N'a de sens que pour un message de type "SIGNALEMENT_DANGER"
+	protected String timestamp;
+	protected final MessageType type;
 
-    protected String urlEmetteur;
-    protected ArrayList<String> urlDestinataire;
-    protected String contenu;
-    protected String timestamp;
+	public Message(final String _urlEmetteur, final ArrayList<String> _urlDestinataire, final String _contenu, final MessageType type)
+	{
+		this.urlEmetteur = _urlEmetteur;
+		this.urlDestinataire = _urlDestinataire;
+		this.type = type;
+		this.timestamp = new Timestamp(System.currentTimeMillis()).toString();
 
-    public Message(String _urlEmetteur, ArrayList<String> _urlDestinataire, String _contenu) {
-        this.urlEmetteur = _urlEmetteur;
-        this.urlDestinataire = _urlDestinataire;
-        this.contenu = _contenu;
-        this.timestamp = new Timestamp(System.currentTimeMillis()).toString();
-    }
+		// Pour un message de creation, on a pas de contenu alors on utilise ce paramètre pour stocker le groupe du nouvel abri.
+		this.contenu = _contenu;
+	}
 
-    public String getUrlEmetteur() {
-        return urlEmetteur;
-    }
+	public Message(final String _urlEmetteur, final ArrayList<String> _urlDestinataire, final MessageType type)
+	{
+		this(_urlEmetteur, _urlDestinataire, null, type);
+	}
 
-    public ArrayList<String> getUrlDestinataire() {
-        return urlDestinataire;
-    }
+	public MessageType getType()
+	{
+		return this.type;
+	}
 
-    public String getContenu() {
-        return contenu;
-    }
-    
-    public String getTimestamp() {
-        return timestamp;
-    }
-    
-    public String toString() {
-        return "A " + timestamp + ", de " + urlEmetteur + " pour " + urlDestinataire + ": " + contenu;
-    }
+	public String getContenu()
+	{
+		return this.contenu;
+	}
 
-    public String toHTML() {
-        return "<u>A " + timestamp + "<br>De <b>" + urlEmetteur + "</b><br>Pour " + urlDestinataire + "</u>:<br>" + contenu + "<hr>";
-    }
+	public String getTimestamp()
+	{
+		return this.timestamp;
+	}
+
+	public ArrayList<String> getUrlDestinataire()
+	{
+		return this.urlDestinataire;
+	}
+
+	public String getUrlEmetteur()
+	{
+		return this.urlEmetteur;
+	}
+
+	public String toHTML()
+	{
+		return "<u>A " + this.timestamp + "<br>De <b>" + this.urlEmetteur + "</b><br>Pour " + this.urlDestinataire + "</u>:<br>" + this.contenu + "<hr>";
+	}
+
+	@Override
+	public String toString()
+	{
+		return "A " + this.timestamp + ", de " + this.urlEmetteur + " pour " + this.urlDestinataire + ": " + this.contenu;
+	}
 
 }

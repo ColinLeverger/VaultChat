@@ -5,31 +5,44 @@
  */
 package controle;
 
+import java.net.MalformedURLException;
+import java.rmi.NotBoundException;
+import java.rmi.RemoteException;
+
 /**
- *
  * @author Gwenole Lecorve
  * @author David Guennec
  */
 public class SimplisteControleur implements ControleurInterface {
-    
+
     protected String url;
     protected AbriLocalInterface abri;
-    
+
     public SimplisteControleur(String url, AbriLocalInterface abri) {
         this.url = url;
         this.abri = abri;
     }
-    
-    @Override
+
+
     public void demanderSectionCritique() {
-        System.out.println(this.url + ": \tDemande de section critique enregistrée");
+        System.out.println(this.url + ": \tDemande de section critique enregistrï¿½e");
         signalerAutorisation();
     }
 
-    @Override
+
     public synchronized void signalerAutorisation() {
         System.out.println(this.url + ": \tSignalement de l'autorisation");
         abri.recevoirAutorisation();
+    }
+
+    @Override
+    public void demanderSectionCritique(String url) {
+
+    }
+
+    @Override
+    public void signalerAutorisation(String url) throws MalformedURLException, RemoteException, NotBoundException {
+
     }
 
     @Override
@@ -46,5 +59,5 @@ public class SimplisteControleur implements ControleurInterface {
     public void supprimerControleur(String urlDistant) {
         System.out.println(this.url + ": \tSuppression du controleur " + urlDistant);
     }
-    
+
 }

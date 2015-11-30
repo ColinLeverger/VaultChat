@@ -56,7 +56,7 @@ public class NoeudCentralBackend extends UnicastRemoteObject implements NoeudCen
     @Override
     public synchronized void modifierAiguillage(String depuisUrl, ArrayList<String> versUrl) throws RemoteException, NoeudCentralException {
         
-        System.out.print(url + ": \tReconfiguration du réseau de " + depuisUrl + " vers ");
+        System.out.print(url + ": \tReconfiguration du rï¿½seau de " + depuisUrl + " vers ");
         Iterator<String> itr = versUrl.iterator();
         while (itr.hasNext()) {
             System.out.print(itr.next());
@@ -67,7 +67,7 @@ public class NoeudCentralBackend extends UnicastRemoteObject implements NoeudCen
     }
 
     @Override
-    public synchronized void transmettre(Message message) throws RemoteException, AbriException, NoeudCentralException {
+    public synchronized void transmettreMessage(Message message) throws RemoteException, AbriException, NoeudCentralException {
         try {
             noeudCentral.demarrerTransmission();
             

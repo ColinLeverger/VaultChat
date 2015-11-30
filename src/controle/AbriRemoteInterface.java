@@ -5,26 +5,30 @@
  */
 package controle;
 
+import modele.AbriException;
+import modele.NoeudCentralException;
+
 import java.rmi.Remote;
 import java.rmi.RemoteException;
-import modele.AbriException;
 
 /**
- *
  * @author Gwenole Lecorve
  * @author David Guennec
  */
 public interface AbriRemoteInterface extends Remote {
 
-    public void enregistrerAbri(String urlAbriDistant, String groupe, String urlControleurDistant) throws RemoteException;
-    
-    public void supprimerAbri(String urlAbriDistant, String urlControleurDistant) throws RemoteException;
 
-    public void enregistrerControleur(String urlControleurDistant, String groupe) throws RemoteException;
+    void enregistrerAbri(String urlAbriDistant, String groupe, String urlControleurDistant) throws RemoteException;
 
-    public void supprimerControleur(String urlControleurDistant) throws RemoteException;
+    void supprimerAbri(String urlAbriDistant, String urlControleurDistant) throws RemoteException;
 
-    public void recevoirMessage(modele.Message transmission) throws RemoteException, AbriException;
+    void enregistrerControleurNoeud(String urlControleurDistant, String groupe) throws RemoteException;
 
-    public String signalerGroupe() throws RemoteException;
+    void supprimerControleurNoeud(String urlControleurDistant) throws RemoteException;
+
+    void recevoirMessage(modele.Message transmission) throws RemoteException, AbriException;
+
+    void recevoirSC() throws RemoteException, AbriException, NoeudCentralException;
+
+    String signalerGroupe() throws RemoteException;
 }
