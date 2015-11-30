@@ -1,0 +1,11 @@
+.idea/*
+./build/**
+./VaultChat.iml
+./*.sh
+/bin/
+
+.project
+
+.classpath
+
+tester-application.sh~
