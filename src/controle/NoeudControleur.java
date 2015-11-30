@@ -11,69 +11,90 @@ import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.util.LinkedList;
 
+import modele.AbriException;
+import modele.NoeudCentralException;
+
 /**
  * @author Gwenole Lecorve
  * @author David Guennec
  */
-public class NoeudControleur implements ControleurInterface {
+public class NoeudControleur implements ControleurInterface
+{
 
-    protected String urlNoeud;
-    protected AbriLocalInterface abri;
-    private LinkedList<String> listeAttenteSectionCritique; // On stock l'url des abris en attente
-    private String urlEnSC;
-    private boolean used;
+	protected String urlNoeud;
+	private LinkedList<String> listeAttenteSectionCritique; // On stock l'url des abris en attente
+	private String urlEnSC;
+	private boolean used;
 
+	public NoeudControleur(final String url)
+	{
+		this.urlNoeud = url;
+		this.used = false;
+	}
 
-    public NoeudControleur(String url, AbriLocalInterface abri) {
-        this.urlNoeud = url;
-        this.abri = abri;
-    }
+	@Override
+	// renvoie vrai si la SC est immédiatement disponible
+	public synchronized boolean demanderSectionCritique(final String urlDemandeur)
+	{
+		System.out.println(this.urlNoeud + ": \tDemande de section critique enregistree");
 
-    @Override
-    public void demanderSectionCritique(final String urlDemandeur) {
-        System.out.println(this.urlNoeud + ": \tDemande de section critique enregistree");
+		if ( !this.used ) {
+			this.used = true;
+			this.urlEnSC = urlDemandeur;
+		} else {
+			this.listeAttenteSectionCritique.add(urlDemandeur);
+		}
+		return used;
+	}
 
-        if (!this.used) {
-            this.used = true;
-            this.urlEnSC = urlDemandeur;
-            try {
-                signalerAutorisation(urlDemandeur);
-                //TODO
-            } catch (MalformedURLException e) {
-                e.printStackTrace();
-            } catch (RemoteException e) {
-                e.printStackTrace();
-            } catch (NotBoundException e) {
-                e.printStackTrace();
-            }
-        } else {
-            this.listeAttenteSectionCritique.add(urlDemandeur);
-        }
-    }
+	@Override
+	public synchronized void signalerAutorisation(final String urlDemandeur) throws MalformedURLException, RemoteException, NotBoundException
+	{
+		// Récupérer l'interface de l'abris que l'on veut contacter
+		AbriRemoteInterface abriRemote = (AbriRemoteInterface) Naming.lookup(urlDemandeur); // @@@ mais on l'avais déjà dans NoeudBackend :(
 
-    public synchronized void signalerAutorisation(final String urlDemandeur) throws MalformedURLException, RemoteException, NotBoundException {
-        // Récupérer l'interface de l'abris que l'on veut contacter
-        AbriRemoteInterface abriRemote = (AbriRemoteInterface) Naming.lookup(urlDemandeur); // @@@ mais on l'avais déjà dans NoeudBackend :(
+		// Lui indiquer qu'il a accès à la section critique
+		try {
+			abriRemote.recevoirSC();
+		} catch ( AbriException e ) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch ( NoeudCentralException e ) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 
-        // Lui indiquer qu'il a accès à la section critique
-        abriRemote.recevoirSC();
+		System.out.println(this.urlNoeud + ": \tSignalement de l'autorisation");
+	}
 
-        System.out.println(this.urlNoeud + ": \tSignalement de l'autorisation");
-    }
+	@Override
+	public String quitterSectionCritique(final String url) throws IllegalAccessException
+	{
+		String prochain = null;
+		if ( !urlEnSC.equals(url) ) {
+			throw new IllegalAccessException("Pas le bon abris qui demande à quitter la SC");
+		}
 
-    @Override
-    public void quitterSectionCritique() {
-        System.out.println(this.urlNoeud + ": \tFin de section critique");
-    }
+		// Libère la SC
+		used = false;
+		urlEnSC = null;
 
-    @Override
-    public void enregistrerControleur(String urlDistant, String groupe) {
-        System.out.println(this.urlNoeud + ": \tEnregistrement du controleur " + urlDistant);
-    }
+		if ( !listeAttenteSectionCritique.isEmpty() ) {
+			prochain = listeAttenteSectionCritique.getFirst();
+		}
+		return prochain;
+	}
 
-    @Override
-    public void supprimerControleur(String urlDistant) {
-        System.out.println(this.urlNoeud + ": \tSuppression du controleur " + urlDistant);
-    }
+	@Override
+	public void enregistrerControleur(final String urlDistant, final String groupe)
+	{
+		System.out.println(this.urlNoeud + ": \tEnregistrement du controleur " + urlDistant);
+	}
+
+	@Override
+	public void supprimerControleur(final String urlDistant)
+	{
+		System.out.println(this.urlNoeud + ": \tSuppression du controleur " + urlDistant);
+	}
 
 }

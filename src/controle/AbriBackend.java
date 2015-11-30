@@ -5,8 +5,6 @@
  */
 package controle;
 
-import modele.*;
-
 import java.net.MalformedURLException;
 import java.rmi.Naming;
 import java.rmi.NotBoundException;
@@ -14,248 +12,260 @@ import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
-import java.util.concurrent.Semaphore;
+import java.util.Map.Entry;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import modele.Abri;
+import modele.AbriException;
+import modele.Adresses;
+import modele.AnnuaireAbri;
+import modele.Message;
+import modele.MessageType;
+import modele.NoeudCentralException;
 
 /**
  * @author Gwenole Lecorve
  * @author David Guennec
  */
-public class AbriBackend extends UnicastRemoteObject implements AbriLocalInterface, AbriRemoteInterface {
+public class AbriBackend extends UnicastRemoteObject implements AbriLocalInterface, AbriRemoteInterface
+{
+	private static final long serialVersionUID = -7291203652359910179L;
 
-    protected String url;
-    protected String controleurUrl;
-    protected String noeudCentralUrl;
+	protected String url;
+	protected String controleurUrl;
+	protected String noeudCentralUrl;
 
-    protected Abri abri;
-    protected NoeudCentralRemoteInterface noeudCentral;
+	protected Abri abri;
+	protected NoeudCentralRemoteInterface noeudCentral;
 
-    protected Annuaire abrisDistants;    // Map faisant le lien entre les url et les interfaces RMI des abris distants
-    protected ArrayList<String> copains; // Les urls des autres membres du groupe de l'abri courant // Pas dans l'annuaire -> imposer la gestion d'une liste locale aux abris pour les groupes
+	protected AnnuaireAbri abrisDistants; // Map<Url,Groupe>
+	protected ArrayList<String> copains; // Les urls des autres membres du groupe de l'abri courant // Pas dans l'annuaire -> imposer la gestion d'une liste locale aux abris pour les groupes
 
-    protected Semaphore semaphore;
+	//protected Semaphore semaphore;
 
-    public AbriBackend(String _url, Abri _abri) throws RemoteException, MalformedURLException {
+	public AbriBackend(final String _url, final Abri _abri) throws RemoteException
+	{
+		this.url = _url;
+		this.controleurUrl = _url + "/controleur";
+		this.noeudCentralUrl = "";
+		this.abri = _abri;
 
-        this.url = _url;
-        this.controleurUrl = _url + "/controleur";
-        this.noeudCentralUrl = "";
+		this.abrisDistants = new AnnuaireAbri();
+		this.copains = new ArrayList<>();
 
-        this.abri = _abri;
-        this.noeudCentral = null;
+		//	this.semaphore = new Semaphore(0, true);
+	}
 
-        this.abrisDistants = new Annuaire();
-        this.copains = new ArrayList<String>();
+	/**
+	 * @throws AbriException
+	 * @throws RemoteException
+	 * @throws NotBoundException
+	 * @throws MalformedURLException
+	 * @throws Throwable
+	 */
+	@Override
+	public void finalize() throws AbriException, RemoteException, NotBoundException, MalformedURLException, Throwable
+	{
+		try {
+			deconnecterAbri();
+			Naming.unbind(url);
+		} finally {
+			super.finalize();
+		}
+	}
 
-        this.semaphore = new Semaphore(0, true);
-    }
+	@Override
+	public String getUrl()
+	{
+		return url;
+	}
 
-    /**
-     * @throws AbriException
-     * @throws RemoteException
-     * @throws NotBoundException
-     * @throws MalformedURLException
-     * @throws Throwable
-     */
-    @Override
-    public void finalize() throws AbriException, RemoteException, NotBoundException, MalformedURLException, Throwable {
-        try {
-            deconnecterAbri();
-            Naming.unbind(url);
-        } finally {
-            super.finalize();
-        }
-    }
+	@Override
+	public boolean estConnecte()
+	{
+		return abri.estConnecte();
+	}
 
-    @Override
-    public String getUrl() {
-        return url;
-    }
+	@Override
+	public AnnuaireAbri getAnnuaire()
+	{
+		return abrisDistants;
+	}
 
-    @Override
-    public boolean estConnecte() {
-        return abri.estConnecte();
-    }
+	@Override
+	public void connecterAbri() throws AbriException, RemoteException, MalformedURLException, NotBoundException
+	{
+		// Enregistrer dans l'annuaire RMI
+		Naming.rebind(url, this);
 
-    @Override
-    public Annuaire getAnnuaire() {
-        return abrisDistants;
-    }
+		// Enregistrement de tous les autres abris
+		// et notification a tous les autres abris
+		for ( String name : Naming.list(Adresses.archetypeAdresseAbri()) ) {
+			name = "rmi:" + name;
+			if ( !name.equals(url) ) {
+				Remote o = Naming.lookup(name);
+				if ( o instanceof AbriRemoteInterface ) {
+					// Enregistrement de l'abri courant
+					System.out.println(url + ": \tEnregistrement aupres de " + name);
+					((AbriRemoteInterface) o).enregistrerAbri(url, abri.donnerGroupe(), controleurUrl);
+					// Enregistrement d'un abri distant
+					AbriBackend.this.enregistrerAbri(name, ((AbriRemoteInterface) o).signalerGroupe(), (AbriRemoteInterface) o);
+				} else if ( o instanceof NoeudCentralRemoteInterface ) {
+					if ( noeudCentral == null ) {
+						this.noeudCentralUrl = name;
+						noeudCentral = (NoeudCentralRemoteInterface) o;
+						noeudCentral.creerAbri(url);
+					} else {
+						throw new AbriException("Plusieurs noeuds centraux semblent exister.");
+					}
+				}
+			}
+		}
+		abri.connecter();
+	}
 
-    @Override
-    public void connecterAbri() throws AbriException, RemoteException, MalformedURLException, NotBoundException {
-        // Enregistrer dans l'annuaire RMI
-        Naming.rebind(url, (AbriRemoteInterface) this);
+	/**
+	 * @throws AbriException
+	 * @throws RemoteException
+	 * @throws MalformedURLException
+	 * @throws NotBoundException
+	 */
+	@Override
+	public void deconnecterAbri() throws AbriException, RemoteException, MalformedURLException, NotBoundException
+	{
+		Set<String> urlDestinataires = abrisDistants.getAbrisDistants().keySet();
+		this.abri.ajouterMessage(new Message(this.url, new ArrayList<>(urlDestinataires), MessageType.SUPPRESSION));
 
-        // Enregistrement de tous les autres abris
-        // et notification a tous les autres abris
-        for (String name : Naming.list(Adresses.archetypeAdresseAbri())) {
-            name = "rmi:" + name;
-            if (!name.equals(url)) {
-                Remote o = Naming.lookup(name);
-                if (o instanceof AbriRemoteInterface) {
-                    // Enregistrement de l'abri courant
-                    System.out.println(url + ": \tEnregistrement aupres de " + name);
-                    ((AbriRemoteInterface) o).enregistrerAbri(url, abri.donnerGroupe(), controleurUrl);
-                    // Enregistrement d'un abri distant
-                    AbriBackend.this.enregistrerAbri(name, ((AbriRemoteInterface) o).signalerGroupe(), (AbriRemoteInterface) o);
-                } else if (o instanceof NoeudCentralRemoteInterface) {
-                    if (noeudCentral == null) {
-                        this.noeudCentralUrl = name;
-                        noeudCentral = (NoeudCentralRemoteInterface) o;
-                        noeudCentral.enregisterAbri(url);
-                    } else {
-                        throw new AbriException("Plusieurs noeuds centraux semblent exister.");
-                    }
-                }
-            }
-        }
-        abri.connecter();
-    }
+		this.abrisDistants.vider();
+		this.abri.deconnecter(); // Abri
+		Naming.unbind(this.url); // Annuaire RMI
+	}
 
-    /**
-     * @throws AbriException
-     * @throws RemoteException
-     * @throws MalformedURLException
-     * @throws NotBoundException
-     */
-    @Override
-    public void deconnecterAbri() throws AbriException, RemoteException, MalformedURLException, NotBoundException {
-        // noeudCentral
-        noeudCentral.supprimerAbri(url);
-        noeudCentralUrl = "";
-        noeudCentral = null;
+	/**
+	 * @param message
+	 * @throws RemoteException
+	 * @throws AbriException
+	 */
+	@Override
+	public synchronized void recevoirMessage(final modele.Message message) throws RemoteException, AbriException
+	{
+		if ( !message.getUrlDestinataire().contains(url) ) {
+			throw new AbriException("Message recu par le mauvais destinataire (" + message.getUrlDestinataire().toString() + " != " + url + ")");
+		}
+		System.out.println(url + ": \tMessage recu de " + message.getUrlEmetteur() + " \"" + message.getContenu() + "\"");
+		abri.ajouterMessage(message);
+	}
 
-        // Autres abris
-        for (AbriRemoteInterface distant : abrisDistants.getAbrisDistants().values()) {
-            try {
-                distant.supprimerAbri(url, controleurUrl);
-            } catch (RemoteException ex) {
-                Logger.getLogger(AbriBackend.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-        abrisDistants.vider();
+	@Override
+	public void recevoirSC() throws AbriException, RemoteException, NoeudCentralException
+	{
+		//	semaphore.acquire();
+		// On envoi tout les messages en attentes
+		for ( Message message : this.abri.lireTampon() ) {
+			this.noeudCentral.transmettreMessage(message);
+		}
+		// On rends la section critique
+		this.noeudCentral.quitterSectionCritique(url);
+	}
 
-        // Abri
-        abri.deconnecter();
+	@Override
+	public void emettreMessage(final String message) throws InterruptedException, RemoteException, AbriException, NoeudCentralException
+	{
+		noeudCentral.demanderSectionCritique(url);
+		ArrayList<String> copaings = new ArrayList<>();
+		for ( Entry<String, String> entry : this.abrisDistants.getAbrisDistants().entrySet() ) {
+			if ( entry.getValue().equals(this.abri.donnerGroupe()) ) { // c'est un copain de notre zone
+				copaings.add(entry.getKey());
+			}
+		}
+		abri.ajouterMessage(new Message(this.url, copains, message, MessageType.SIGNALEMENT_DANGER));
+	}
 
-        // Annuaire RMI
-        Naming.unbind(url);
-    }
+	@Override
+	public void enregistrerAbri(final String urlDistant, final String groupe, final AbriRemoteInterface distant)
+	{
+		abrisDistants.ajouterAbriDistant(urlDistant, groupe);
 
-    /**
-     * @param message
-     * @throws RemoteException
-     * @throws AbriException
-     */
-    @Override
-    public synchronized void recevoirMessage(modele.Message message) throws RemoteException, AbriException {
-        if (!message.getUrlDestinataire().contains(url)) {
-            throw new AbriException("Message recu par le mauvais destinataire (" + message.getUrlDestinataire().toString() + " != " + url + ")");
-        }
-        System.out.println(url + ": \tMessage recu de " + message.getUrlEmetteur() + " \"" + message.getContenu() + "\"");
-        abri.ajouterMessage(message);
-    }
+		if ( groupe.equals(abri.donnerGroupe()) ) {
+			this.copains.add(urlDistant);
+		}
 
-    @Override
-    public void recevoirSC() throws AbriException, RemoteException, NoeudCentralException {
-        // On envoi tout les messages en attentes
-        for (Message message : this.abri.lireTampon()) {
-            this.noeudCentral.transmettreMessage(message);
-        }
-        // On rends la section critique
-        this.noeudCentral.quitterSectionCritique(url);
-    }
+		System.out.println(url + ": \tEnregistrement de l'abri " + urlDistant);
+	}
 
-    @Override
-    public void emettreMessage(String message) throws InterruptedException, RemoteException, AbriException, NoeudCentralException {
-        noeudCentral.demanderSectionCritique(url);
-        //TODO ___________________________________________________
-        semaphore.acquire();
-        System.out.println(url + ": \tEntree en section critique");
-        System.out.println(url + " est dans le groupe " + abri.donnerGroupe());
-        System.out.println(url + ": \tEmission vers " + copains.toString() + ": " + message);
-        noeudCentral.modifierAiguillage(url, copains);
-        noeudCentral.transmettreMessage(new Message(url, copains, message, MessageType.SIGNALEMENT_DANGER));
-        System.out.println(url + ": \tSortie de la section critique");
-    }
+	@Override
+	public synchronized void enregistrerAbri(final String urlAbriDistant, final String groupe, final String urlControleurDistant)
+	{
+		try {
+			AbriRemoteInterface o = (AbriRemoteInterface) Naming.lookup(urlAbriDistant);
+			AbriBackend.this.enregistrerAbri(urlAbriDistant, groupe, o);
+			//       enregistrerControleurNoeud(urlControleurDistant, groupe);
+			//       o.enregistrerControleurNoeud(controleurUrl, groupe);
+		} catch ( NotBoundException ex ) {
+			Logger.getLogger(AbriBackend.class.getName()).log(Level.SEVERE, null, ex);
+		} catch ( MalformedURLException ex ) {
+			Logger.getLogger(AbriBackend.class.getName()).log(Level.SEVERE, null, ex);
+		} catch ( RemoteException ex ) {
+			Logger.getLogger(AbriBackend.class.getName()).log(Level.SEVERE, null, ex);
+		}
+	}
 
-    @Override
-    public void enregistrerAbri(String urlDistant, String groupe, AbriRemoteInterface distant) {
-        abrisDistants.ajouterAbriDistant(urlDistant, distant);
+	@Override
+	public synchronized void supprimerAbri(final String urlDistant)
+	{
+		System.out.println(url + ": \tOubli de l'abri " + urlDistant);
+		abrisDistants.retirerAbriDistant(urlDistant);
+		if ( copains.contains(urlDistant) ) {
+			copains.remove(urlDistant);
+		}
+	}
 
-        if (groupe.equals(abri.donnerGroupe())) {
-            this.copains.add(urlDistant);
-        }
+	@Override
+	public synchronized void supprimerAbri(final String urlAbriDistant, final String urlControleurDistant)
+	{
+		try {
+			AbriRemoteInterface o = (AbriRemoteInterface) Naming.lookup(urlAbriDistant);
+			AbriBackend.this.supprimerAbri(urlAbriDistant);
+			//    supprimerControleurNoeud(urlControleurDistant);
+			//     o.supprimerControleurNoeud(controleurUrl);
+		} catch ( NotBoundException ex ) {
+			Logger.getLogger(AbriBackend.class.getName()).log(Level.SEVERE, null, ex);
+		} catch ( MalformedURLException ex ) {
+			Logger.getLogger(AbriBackend.class.getName()).log(Level.SEVERE, null, ex);
+		} catch ( RemoteException ex ) {
+			Logger.getLogger(AbriBackend.class.getName()).log(Level.SEVERE, null, ex);
+		}
+	}
 
-        System.out.println(url + ": \tEnregistrement de l'abri " + urlDistant);
-    }
+	/*
+	 * @Override public synchronized void enregistrerControleurNoeud(String
+	 * urlDistante, String groupe) {
+	 * controleur.enregistrerControleur(urlDistante, groupe); }
+	 */
 
-    @Override
-    public synchronized void enregistrerAbri(String urlAbriDistant, String groupe, String urlControleurDistant) {
-        try {
-            AbriRemoteInterface o = (AbriRemoteInterface) Naming.lookup(urlAbriDistant);
-            AbriBackend.this.enregistrerAbri(urlAbriDistant, groupe, o);
-            enregistrerControleurNoeud(urlControleurDistant, groupe);
-            o.enregistrerControleurNoeud(controleurUrl, groupe);
-        } catch (NotBoundException ex) {
-            Logger.getLogger(AbriBackend.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (MalformedURLException ex) {
-            Logger.getLogger(AbriBackend.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (RemoteException ex) {
-            Logger.getLogger(AbriBackend.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
+	/*
+	 * @Override public synchronized void supprimerControleurNoeud(String
+	 * urlDistante) { controleur.supprimerControleur(urlDistante); }
+	 */
 
-    @Override
-    public synchronized void supprimerAbri(String urlDistant) {
-        System.out.println(url + ": \tOubli de l'abri " + urlDistant);
-        abrisDistants.retirerAbriDistant(urlDistant);
-        if (copains.contains(urlDistant)) {
-            copains.remove(urlDistant);
-        }
-    }
+	@Override
+	public void recevoirAutorisation()
+	{
+		//	semaphore.release();
+	}
 
-    @Override
-    public synchronized void supprimerAbri(String urlAbriDistant, String urlControleurDistant) {
-        try {
-            AbriRemoteInterface o = (AbriRemoteInterface) Naming.lookup(urlAbriDistant);
-            AbriBackend.this.supprimerAbri(urlAbriDistant);
-            supprimerControleurNoeud(urlControleurDistant);
-            o.supprimerControleurNoeud(controleurUrl);
-        } catch (NotBoundException ex) {
-            Logger.getLogger(AbriBackend.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (MalformedURLException ex) {
-            Logger.getLogger(AbriBackend.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (RemoteException ex) {
-            Logger.getLogger(AbriBackend.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
+	@Override
+	public void changerGroupe(final String groupe)
+	{
+		abri.definirGroupe(groupe);
+	}
 
-    /*@Override
-    public synchronized void enregistrerControleurNoeud(String urlDistante, String groupe) {
-        controleur.enregistrerControleur(urlDistante, groupe);
-    }*/
-
-    /*@Override
-    public synchronized void supprimerControleurNoeud(String urlDistante) {
-        controleur.supprimerControleur(urlDistante);
-    }*/
-
-    @Override
-    public void recevoirAutorisation() {
-        semaphore.release();
-    }
-
-    @Override
-    public void changerGroupe(String groupe) {
-        abri.definirGroupe(groupe);
-    }
-
-    @Override
-    public String signalerGroupe() throws RemoteException {
-        return abri.donnerGroupe();
-    }
+	@Override
+	public String signalerGroupe() throws RemoteException
+	{
+		return abri.donnerGroupe();
+	}
 
 }
