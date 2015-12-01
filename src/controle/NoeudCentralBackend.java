@@ -132,6 +132,7 @@ public class NoeudCentralBackend extends UnicastRemoteObject implements NoeudCen
 		if ( prochain != null ) { // On donne l'accès au prochain
 			try {
 				noeudControleur.setUrlEnSC(prochain);
+				System.out.println("@@@ ON DONNE LA SC AU PROCHAIN ET ON LE MEMORISE EN SC");
 				abris.getAbrisDistants().get(prochain).recevoirSC();
 			} catch ( AbriException e ) {
 				// TODO Auto-generated catch block

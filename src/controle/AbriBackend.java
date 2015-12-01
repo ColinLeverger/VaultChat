@@ -5,8 +5,6 @@
  */
 package controle;
 
-import modele.*;
-
 import java.net.MalformedURLException;
 import java.rmi.Naming;
 import java.rmi.NotBoundException;
@@ -18,6 +16,14 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import modele.Abri;
+import modele.AbriException;
+import modele.Adresses;
+import modele.AnnuaireAbri;
+import modele.Message;
+import modele.MessageType;
+import modele.NoeudCentralException;
 
 /**
  * @author Gwenole Lecorve
@@ -173,6 +179,7 @@ public class AbriBackend extends UnicastRemoteObject implements AbriLocalInterfa
 
 	private void calculCopains()
 	{
+		this.copains.clear();
 		for ( Entry<String, String> entry : this.abrisDistants.getAbrisDistants().entrySet() ) {
 			if ( entry.getValue().equals(this.abri.donnerGroupe()) && !this.notreURL.equals(entry.getKey()) ) { // c'est un copain de notre zone mais que c'est pas nous
 				this.copains.add(entry.getKey());
