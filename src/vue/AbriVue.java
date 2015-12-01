@@ -256,7 +256,7 @@ public class AbriVue extends JFrame implements Observer
 	private void emettreBoutonActionPerformed(final java.awt.event.ActionEvent evt)
 	{//GEN-FIRST:event_emettreBoutonActionPerformed
 		try {
-			backend.ajouterMessageAuTampon(emissionTextArea.getText());
+			backend.emettreMessageDanger(emissionTextArea.getText());
 		} catch ( Exception ex ) {
 			ex.printStackTrace();
 			afficherErreur("Erreur lors de l'emission du message", ex.getMessage());
@@ -459,7 +459,7 @@ public class AbriVue extends JFrame implements Observer
 		{
 			while ( emettreEnBoucle ) {
 				try {
-					backend.ajouterMessageAuTampon(emissionTextArea.getText());
+					backend.emettreMessageDanger(emissionTextArea.getText());
 					Thread.sleep(100); //@@@ Maelig essaie de temper à virer FIXME TODO
 				} catch ( Exception ex ) {
 					ex.printStackTrace();

@@ -47,7 +47,9 @@ public class AnnuaireNoeudCentral extends Observable
 
 	public Map<String, AbriRemoteInterface> getAbrisDistants()
 	{
-		return this.abrisDistants;
+		synchronized ( abrisDistants ) {
+			return this.abrisDistants;
+		}
 	}
 
 	protected void notifierObservateurs()

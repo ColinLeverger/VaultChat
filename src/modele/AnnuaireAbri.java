@@ -33,7 +33,9 @@ public class AnnuaireAbri extends Observable
 
 	public Map<String, String> getAbrisDistants()
 	{
-		return this.abrisDistants;
+		synchronized ( abrisDistants ) {
+			return this.abrisDistants;
+		}
 	}
 
 	protected void notifierObservateurs()

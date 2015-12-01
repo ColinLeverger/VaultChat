@@ -87,6 +87,13 @@ public class AbriBackend extends UnicastRemoteObject implements AbriLocalInterfa
 		return abrisDistants;
 	}
 
+	private synchronized List<Message> getMessagesEnAttente()
+	{
+		synchronized ( messagesEnAttente ) {
+			return this.messagesEnAttente;
+		}
+	}
+
 	@Override
 	public void attribuerGroupe(final String groupe)
 	{
@@ -173,7 +180,7 @@ public class AbriBackend extends UnicastRemoteObject implements AbriLocalInterfa
 	//
 
 	@Override
-	public void ajouterMessageAuTampon(final String message) throws InterruptedException, RemoteException, AbriException, NoeudCentralException
+	public void emettreMessageDanger(final String message) throws InterruptedException, RemoteException, AbriException, NoeudCentralException
 	{
 		System.out.println("@@@ Ajout d'un message en attente et demande de la SC");
 		calculCopains(); // On s'assure que notre liste de copains est à jour
@@ -216,18 +223,16 @@ public class AbriBackend extends UnicastRemoteObject implements AbriLocalInterfa
 	@Override
 	public void recevoirSC() throws RemoteException, AbriException, NoeudCentralException
 	{
-		demandeSC.set(false); // On a reçu la SC donc on ne la demande plus immédiatement
 		System.out.println("Abris backend Recevoir SC --> url : " + notreURL + " viens de recevoir la SC");
 		// On transmet tout les messages en attentes...
-		//synchronized ( messagesEnAttente ) {
-		System.out.println("Les messages en attente sont : " + messagesEnAttente);
-		for ( Message message : messagesEnAttente ) {
-			System.out.println("Envoie d'un message depuis " + message.getUrlEmetteur() + "vers " + message.getUrlDestinataire() + " avec pour contenu: " + message.getContenu());
-			noeudRemote.transmettreMessage(message);
-			messagesEnAttente.remove(message); // Il a été envoyé donc on le retire du tampon
-		}
-		//}
+		//		for ( Message message : getMessagesEnAttente() ) { //FIXME cause une concurent modification exception
+		//			System.out.println("Envoie d'un message depuis " + message.getUrlEmetteur() + "vers " + message.getUrlDestinataire() + " avec pour contenu: " + message.getContenu());
+		//			noeudRemote.transmettreMessage(message);
+		//			getMessagesEnAttente().remove(message); // Il a été envoyé donc on le retire du tampon
+		//		}
 		// ... puis on libère directement la section critique.
+		System.out.println("@@@ on a finis de faire ce qu'on veut en SC donc on la libère");
+		demandeSC.set(false); // On a reçu la SC donc on ne la demande plus immédiatement
 		noeudRemote.quitterSectionCritique(notreURL);
 	}
 
@@ -237,12 +242,10 @@ public class AbriBackend extends UnicastRemoteObject implements AbriLocalInterfa
 
 	private void ajouterMesageTampon(final Message message) throws RemoteException
 	{
-		synchronized ( messagesEnAttente ) {
-			messagesEnAttente.add(message);
-			if ( !demandeSC.get() ) {
-				demandeSC.set(true);
-				noeudRemote.demanderSectionCritique(notreURL);
-			}
+		getMessagesEnAttente().add(message);
+		if ( !demandeSC.get() ) { // Si on est pas déjà en attente pour avoir la SC, on la demande car on a un mesage qui veut être envoyé !
+			demandeSC.set(true);
+			noeudRemote.demanderSectionCritique(notreURL);
 		}
 	}
 
@@ -269,7 +272,7 @@ public class AbriBackend extends UnicastRemoteObject implements AbriLocalInterfa
 		synchronized ( copains ) {
 			copains.clear();
 			for ( Entry<String, String> entry : abrisDistants.getAbrisDistants().entrySet() ) {
-				if ( entry.getValue().equals(abri.donnerGroupe()) && !notreURL.equals(entry.getKey()) ) { // c'est un copain de notre zone mais que c'est pas nous
+				if ( entry.getValue().equals(abri.donnerGroupe()) && !notreURL.equals(entry.getKey()) ) { // c'est un copain de notre zone mais  c'est pas nous
 					copains.add(entry.getKey());
 				}
 			}

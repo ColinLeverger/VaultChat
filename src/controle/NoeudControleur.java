@@ -74,9 +74,7 @@ public class NoeudControleur implements ControleurInterface
 	public void setUrlEnSC(final String urlEnSC)
 	{
 		System.out.println("@@@@@@@@ appel de setUrlEnSC avec pour valeur --> " + urlEnSC);
-		synchronized ( urlEnSC ) {
-			this.urlEnSC = urlEnSC;
-		}
+		this.urlEnSC = urlEnSC;
 	}
 
 }

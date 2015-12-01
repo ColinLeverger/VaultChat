@@ -98,18 +98,21 @@ public class NoeudCentralBackend extends UnicastRemoteObject implements NoeudCen
 	}
 
 	@Override
+	// le noeud centrale recoit un message signalant qu'un nouvel abri a rejoint le réseau
 	public void creerAbri(final String urlAbriDistant, final String groupeAbri) throws RemoteException, NotBoundException, MalformedURLException
 	{
-		// On envoie un broadcast à tout les abris éxistants pour signaler la présence du nouveau.
-		for ( Entry<String, AbriRemoteInterface> autreAbri : abris.getAbrisDistants().entrySet() ) {
-			System.out.println("@@@ L'abris distant " + autreAbri.getKey() + " a été par le noeud central que l'abris " + urlAbriDistant + " viens de se connecter.");
-			autreAbri.getValue().enregistrerAbri(urlAbriDistant, groupeAbri);
-		}
-
 		// On mémorise dans l'annuaire du noeud central
 		System.out.println(url + ": \tEnregistrement de l'abri dans l'annuaire du noeud central " + urlAbriDistant);
 		AbriRemoteInterface abriDistant = (AbriRemoteInterface) Naming.lookup(urlAbriDistant);
 		abris.ajouterAbriDistant(urlAbriDistant, abriDistant);
+
+		// On envoie un broadcast à tout les abris éxistants pour signaler la présence du nouveau.
+		for ( Entry<String, AbriRemoteInterface> autreAbri : abris.getAbrisDistants().entrySet() ) {
+			if ( !autreAbri.getKey().equals(urlAbriDistant) ) {
+				System.out.println("@@@ L'abris distant " + autreAbri.getKey() + " a été par le noeud central que l'abris " + urlAbriDistant + " viens de se connecter.");
+				autreAbri.getValue().enregistrerAbri(urlAbriDistant, groupeAbri);
+			}
+		}
 	}
 
 	@Override
@@ -119,7 +122,8 @@ public class NoeudCentralBackend extends UnicastRemoteObject implements NoeudCen
 		if ( available ) { // SC dispo immédiatement
 			try {
 				System.out.println("SC dispo on donne l'autorisaiton");
-				abris.getAbrisDistants().get(url).recevoirSC();
+				noeudControleur.setUrlEnSC(url);
+				abris.chercherUrl(url).recevoirSC();
 			} catch ( AbriException | NoeudCentralException e ) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -144,7 +148,7 @@ public class NoeudCentralBackend extends UnicastRemoteObject implements NoeudCen
 		if ( prochain != null ) {
 			try {
 				noeudControleur.setUrlEnSC(prochain);
-				abris.getAbrisDistants().get(prochain).recevoirSC();
+				abris.chercherUrl(prochain).recevoirSC();
 			} catch ( AbriException e ) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
