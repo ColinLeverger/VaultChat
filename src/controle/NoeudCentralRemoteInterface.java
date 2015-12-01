@@ -25,7 +25,7 @@ public interface NoeudCentralRemoteInterface extends Remote
 
 	void transmettreMessage(Message message) throws RemoteException, AbriException, NoeudCentralException;
 
-	void creerAbri(String url) throws RemoteException, NotBoundException, MalformedURLException;
+	void creerAbri(String urlAbri, String groupeAbri) throws RemoteException, NotBoundException, MalformedURLException;
 
 	void demanderSectionCritique(String url) throws RemoteException;
 

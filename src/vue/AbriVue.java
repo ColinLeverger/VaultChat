@@ -315,7 +315,7 @@ public class AbriVue extends JFrame implements Observer
 			}
 		} else {
 			try {
-				backend.changerGroupe((String) groupsList.getSelectedValue());
+				backend.attribuerGroupe((String) groupsList.getSelectedValue());
 				backend.connecterAbri();
 				etatLabel.setText("<html><a color=green>Connect�</a></html>");
 				connectionBouton.setText("D�connecter l'abri du r�seau");

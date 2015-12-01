@@ -19,8 +19,6 @@ public interface AbriRemoteInterface extends Remote
 {
 	void enregistrerAbri(String urlAbriDistant, String groupe) throws RemoteException;
 
-	void supprimerAbri(String urlAbriDistant, String urlControleurDistant) throws RemoteException;
-
 	void recevoirMessage(modele.Message transmission) throws RemoteException, AbriException;
 
 	void recevoirSC() throws RemoteException, AbriException, NoeudCentralException;

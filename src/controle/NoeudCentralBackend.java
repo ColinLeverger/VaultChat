@@ -11,6 +11,7 @@ import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
+import java.util.Map.Entry;
 
 import modele.AbriException;
 import modele.AnnuaireNoeudCentral;
@@ -97,9 +98,16 @@ public class NoeudCentralBackend extends UnicastRemoteObject implements NoeudCen
 	}
 
 	@Override
-	public void creerAbri(final String urlAbriDistant) throws RemoteException, NotBoundException, MalformedURLException
+	public void creerAbri(final String urlAbriDistant, final String groupeAbri) throws RemoteException, NotBoundException, MalformedURLException
 	{
-		System.out.println(url + ": \tEnregistrement de l'abri dans l'annuaire " + urlAbriDistant);
+		// On envoie un broadcast à tout les abris éxistants pour signaler la présence du nouveau.
+		for ( Entry<String, AbriRemoteInterface> autreAbri : abris.getAbrisDistants().entrySet() ) {
+			System.out.println("@@@ L'abris distant " + autreAbri.getKey() + " a été par le noeud central que l'abris " + urlAbriDistant + " viens de se connecter.");
+			autreAbri.getValue().enregistrerAbri(urlAbriDistant, groupeAbri);
+		}
+
+		// On mémorise dans l'annuaire du noeud central
+		System.out.println(url + ": \tEnregistrement de l'abri dans l'annuaire du noeud central " + urlAbriDistant);
 		AbriRemoteInterface abriDistant = (AbriRemoteInterface) Naming.lookup(urlAbriDistant);
 		abris.ajouterAbriDistant(urlAbriDistant, abriDistant);
 	}
@@ -122,6 +130,8 @@ public class NoeudCentralBackend extends UnicastRemoteObject implements NoeudCen
 	@Override
 	public void quitterSectionCritique(final String url) throws RemoteException
 	{
+		System.out.println("Abri demande à quitter la SC");
+		// On enregistre le fait que l'abris actuel libère la SC
 		String prochain = null;
 		try {
 			prochain = noeudControleur.quitterSectionCritique(url);
@@ -129,10 +139,11 @@ public class NoeudCentralBackend extends UnicastRemoteObject implements NoeudCen
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		if ( prochain != null ) { // On donne l'accès au prochain
+
+		// Un abri était en attente pour avoir la SC, on la lui donne
+		if ( prochain != null ) {
 			try {
 				noeudControleur.setUrlEnSC(prochain);
-				System.out.println("@@@ ON DONNE LA SC AU PROCHAIN ET ON LE MEMORISE EN SC");
 				abris.getAbrisDistants().get(prochain).recevoirSC();
 			} catch ( AbriException e ) {
 				// TODO Auto-generated catch block

@@ -17,7 +17,7 @@ import controle.AbriRemoteInterface;
  */
 public class AnnuaireNoeudCentral extends Observable
 {
-	// param string = url distant du site
+	// Map<URL,AbriRemoteInterface>
 	protected Map<String, AbriRemoteInterface> abrisDistants;
 
 	public AnnuaireNoeudCentral()
@@ -27,17 +27,21 @@ public class AnnuaireNoeudCentral extends Observable
 
 	public void ajouterAbriDistant(final String url, final AbriRemoteInterface abri)
 	{
-		this.abrisDistants.put(url, abri);
-		notifierObservateurs();
+		synchronized ( abrisDistants ) {
+			this.abrisDistants.put(url, abri);
+			notifierObservateurs();
+		}
 	}
 
 	public AbriRemoteInterface chercherUrl(final String urlDistant) throws AbriException
 	{
-		AbriRemoteInterface abri = this.abrisDistants.get(urlDistant);
-		if ( abri == null ) {
-			throw new AbriException("Abri " + urlDistant + " introuvable dans l'annuaire local.");
-		} else {
-			return abri;
+		synchronized ( abrisDistants ) {
+			AbriRemoteInterface abri = this.abrisDistants.get(urlDistant);
+			if ( abri == null ) {
+				throw new AbriException("Abri " + urlDistant + " introuvable dans l'annuaire local.");
+			} else {
+				return abri;
+			}
 		}
 	}
 
@@ -54,13 +58,19 @@ public class AnnuaireNoeudCentral extends Observable
 
 	public void retirerAbriDistant(final String url)
 	{
-		this.abrisDistants.remove(url);
+		synchronized ( abrisDistants ) {
+			this.abrisDistants.remove(url);
+			notifierObservateurs();
+		}
 		notifierObservateurs();
 	}
 
 	public void vider()
 	{
-		this.abrisDistants.clear();
+		synchronized ( abrisDistants ) {
+			this.abrisDistants.clear();
+			notifierObservateurs();
+		}
 		notifierObservateurs();
 	}
 

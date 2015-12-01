@@ -25,8 +25,10 @@ public class AnnuaireAbri extends Observable
 
 	public void ajouterAbriDistant(final String url, final String groupe)
 	{
-		this.abrisDistants.put(url, groupe);
-		notifierObservateurs();
+		if ( !abrisDistants.containsKey(url) ) { // Association 1-1
+			this.abrisDistants.put(url, groupe);
+			notifierObservateurs();
+		}
 	}
 
 	public Map<String, String> getAbrisDistants()

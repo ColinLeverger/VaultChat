@@ -32,10 +32,10 @@ public interface AbriLocalInterface
 
 	public void ajouterMessageAuTampon(String message) throws InterruptedException, RemoteException, AbriException, NoeudCentralException;
 
-	public void enregistrerAbri(String url, String groupe, AbriRemoteInterface distant);
+	//	public void enregistrerAbri(String url, String groupe, AbriRemoteInterface distant);
 
 	public void supprimerAbri(String url);
 
-	public void changerGroupe(String groupe);
+	public void attribuerGroupe(String groupe);
 
 }
