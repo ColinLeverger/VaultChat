@@ -1,11 +1,4 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package controle;
-
-import modele.*;
 
 import java.net.MalformedURLException;
 import java.rmi.Naming;
@@ -14,6 +7,12 @@ import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 import java.util.Map.Entry;
+
+import modele.AbriException;
+import modele.AnnuaireNoeudCentral;
+import modele.Message;
+import modele.NoeudCentral;
+import modele.NoeudCentralException;
 
 /**
  *
@@ -79,7 +78,7 @@ public class NoeudCentralBackend extends UnicastRemoteObject implements NoeudCen
 	@Override
 	public void modifierAiguillage(final String depuisUrl, final ArrayList<String> versUrl) throws RemoteException, NoeudCentralException
 	{
-		System.out.print(url + ": \t RECONFIGURATION DU RESEAU " + depuisUrl + " VERS " + versUrl);
+		System.out.print("JE SUIS LE NOEUD CENTRAL, JE ME RECONFIGURE DEPUIS " + depuisUrl + " VERS " + versUrl);
 		noeudCentral.reconfigurerAiguillage(depuisUrl, versUrl);
 	}
 
@@ -104,7 +103,7 @@ public class NoeudCentralBackend extends UnicastRemoteObject implements NoeudCen
 	// le noeud central recoit un message signalant qu'un nouvel abri a rejoint le réseau
 	public void creerAbri(final String urlAbriDistant, final String groupeAbri) throws RemoteException, NotBoundException, MalformedURLException
 	{
-		System.out.println("JE SUIS LE NOEUD, ABRI " +urlAbriDistant+ " VIENS DE S'AJOUTER.");
+		System.out.println("JE SUIS LE NOEUD, ABRI " + urlAbriDistant + " VIENS DE S'AJOUTER, JE DOIS PREVENIR " + abris.getAbrisDistants().size() + " AUTRES ABRIS.");
 		// On mémorise dans l'annuaire du noeud central
 		AbriRemoteInterface abriDistant = (AbriRemoteInterface) Naming.lookup(urlAbriDistant);
 		abris.ajouterAbriDistant(urlAbriDistant, abriDistant);
@@ -112,7 +111,7 @@ public class NoeudCentralBackend extends UnicastRemoteObject implements NoeudCen
 		// On envoie un broadcast à tout les abris éxistants pour signaler la présence du nouveau.
 		for ( Entry<String, AbriRemoteInterface> autreAbri : abris.getAbrisDistants().entrySet() ) {
 			if ( !autreAbri.getKey().equals(urlAbriDistant) ) {
-				System.out.println(autreAbri.getValue() + " RECOIS " +urlAbriDistant);
+				System.out.println(autreAbri.getKey() + " RECOIS " + urlAbriDistant);
 				autreAbri.getValue().enregistrerAbri(urlAbriDistant, groupeAbri);
 			}
 		}
@@ -149,6 +148,7 @@ public class NoeudCentralBackend extends UnicastRemoteObject implements NoeudCen
 
 		// Un abri était en attente pour avoir la SC, on la lui donne
 		if ( prochain != null ) {
+			System.out.println("JE SUIS LE NOEUD, UN ABRI A QUITTE LA SC ET JE LA DONNE MAINTENANT A " + prochain);
 			try {
 				sectionCritiqueControleur.setUrlEnSC(prochain);
 				abris.chercherUrl(prochain).recevoirSC();
@@ -159,6 +159,8 @@ public class NoeudCentralBackend extends UnicastRemoteObject implements NoeudCen
 				e.printStackTrace();
 				System.exit(-1);
 			}
+		} else {
+			System.out.println("JE SUIS LE NOEUD, UN ABRI A QUITTE LA SC ET PERSONNE EN ATTENTE");
 		}
 	}
 
