@@ -30,14 +30,14 @@ public class NoeudCentralBackend extends UnicastRemoteObject implements NoeudCen
 
 	protected String url;
 	protected NoeudCentral noeudCentral;
-	protected NoeudControleur noeudControleur;
+	protected SectionCritiqueNoeudControleur noeudControleur;
 	protected AnnuaireNoeudCentral abris;
 
 	public NoeudCentralBackend(final String _url) throws RemoteException, MalformedURLException
 	{
 		this.url = _url;
 		noeudCentral = new NoeudCentral();
-		noeudControleur = new NoeudControleur(this.url);
+		noeudControleur = new SectionCritiqueNoeudControleur(this.url);
 		abris = new AnnuaireNoeudCentral();
 		Naming.rebind(url, this);
 	}

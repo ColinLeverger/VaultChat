@@ -114,12 +114,12 @@ public class AbriBackend extends UnicastRemoteObject implements AbriLocalInterfa
 		for ( String name : Naming.list(Adresses.archetypeAdresseNoeudCentral()) ) {
 			name = "rmi:" + name;
 			if ( !name.equals(notreURL) ) {
-				Remote o = Naming.lookup(name);
-				if ( o instanceof NoeudCentralRemoteInterface ) {
+				Remote remote = Naming.lookup(name);
+				if ( remote instanceof NoeudCentralRemoteInterface ) {
 					if ( noeudRemote == null ) { // Le noeud central est unique
 						System.out.println("@@@ Initialisation du noeud central --> " + name);
 						noeudURL = name;
-						noeudRemote = (NoeudCentralRemoteInterface) o;
+						noeudRemote = (NoeudCentralRemoteInterface) remote;
 					} else {
 						throw new AbriException("Plusieurs noeuds centraux semblent exister.");
 					}
@@ -207,6 +207,7 @@ public class AbriBackend extends UnicastRemoteObject implements AbriLocalInterfa
 				String[] parts = message.getContenu().split("|");
 				String url = parts[0];
 				String groupe = parts[1];
+				System.out.println("@@@ Recevoir signalement de danger on a récupéré via split : url -> " + url + " et groupe -> " + groupe);
 				abrisDistants.ajouterAbriDistant(url, groupe);
 				calculCopains();
 				break;

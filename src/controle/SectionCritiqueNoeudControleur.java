@@ -12,14 +12,14 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @author Gwenole Lecorve
  * @author David Guennec
  */
-public class NoeudControleur implements ControleurInterface
+public class SectionCritiqueNoeudControleur implements ControleurInterface
 {
 	protected String notreURL;
 	private LinkedList<String> listeAttenteSectionCritique; // On stock l'url des abris en attente
 	private String urlEnSC; // Indique l'url de l'abri qui est acctuellement en section critique
 	private AtomicBoolean used; // Indique si la section critique est acctuellement utilisée. Reviens à évaluer 'urlEnSC == null'
 
-	public NoeudControleur(final String url)
+	public SectionCritiqueNoeudControleur(final String url)
 	{
 		this.listeAttenteSectionCritique = new LinkedList<>(); // Stucture FIFO
 		this.notreURL = url;
