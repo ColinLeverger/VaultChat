@@ -113,6 +113,7 @@ public class AbriBackend extends UnicastRemoteObject implements AbriLocalInterfa
 	//
 
 	@Override
+	// On se connecte
 	public void connecterAbri() throws AbriException, RemoteException, MalformedURLException, NotBoundException, NoeudCentralException
 	{
 		// Enregistrer dans l'annuaire RMI, notre AbriRemoteInterface sera disponible à partir de notreURL
@@ -133,15 +134,16 @@ public class AbriBackend extends UnicastRemoteObject implements AbriLocalInterfa
 			}
 		}
 		assert noeudRemote != null; // Il doit forcément éxister pour que notre système fonctionne.
-		noeudRemote.connexionAbri(notreURL, nous.donnerGroupe()); // On indique qu'on se connecte, il va faire un broadcast aux autres.
+		//noeudRemote.connexionAbri(notreURL, nous.donnerGroupe()); // On indique qu'on se connecte, il va faire un broadcast aux autres.
+		ajouterMesageTampon(new Message(notreURL, Arrays.asList(noeudURL), MessageType.ENVOYER_SIGNALEMENT_CONNECTION));
 		nous.connecter();
 	}
 
 	@Override
 	public void demanderDeconexion() throws AbriException, RemoteException, MalformedURLException, NotBoundException, NoeudCentralException
 	{
-		noeudRemote.deconnecterAbri(notreURL);
-
+		//	noeudRemote.deconnecterAbri(notreURL);
+		ajouterMesageTampon(new Message(notreURL, Arrays.asList(noeudURL), MessageType.ENVOYER_SIGNALEMENT_DECONNECTION));
 		// On oublie tout ce que l'on connait du réseau
 		noeudURL = null;
 		noeudRemote = null;
@@ -165,7 +167,7 @@ public class AbriBackend extends UnicastRemoteObject implements AbriLocalInterfa
 
 		// ... puis on renvoie un message indiquant qu'on a reçu et que nous on éxiste (pour que le nouveau nous connaisse)
 		String contenu = notreURL + SPLIT_CHAR + nous.donnerGroupe(); // Le destinataire devra split pour récupérer les deux infos
-		ajouterMesageTampon(new Message(notreURL, Arrays.asList(urlDistant), contenu, MessageType.SIGNALEMENT_EXISTENCE));
+		ajouterMesageTampon(new Message(notreURL, Arrays.asList(urlDistant), contenu, MessageType.RECEVOIR_SIGNALEMENT_EXISTENCE));
 	}
 
 	private void supprimerAbri(final String urlDistant)
@@ -183,7 +185,7 @@ public class AbriBackend extends UnicastRemoteObject implements AbriLocalInterfa
 	public void emettreMessageDanger(final String message) throws InterruptedException, RemoteException, AbriException, NoeudCentralException
 	{
 		System.out.println("AJOUT DE MESSAGE DANGER DS FILE D'ATTENDE DE " + notreURL);
-		ajouterMesageTampon(new Message(notreURL, copains, message, MessageType.SIGNALEMENT_DANGER));
+		ajouterMesageTampon(new Message(notreURL, copains, message, MessageType.ENVOYER_SIGNALEMENT_DANGER));
 	}
 
 	/**
@@ -192,6 +194,7 @@ public class AbriBackend extends UnicastRemoteObject implements AbriLocalInterfa
 	 * @throws AbriException
 	 * @throws NoeudCentralException
 	 */
+	@SuppressWarnings("incomplete-switch")
 	@Override
 	public void recevoirMessage(final modele.Message message) throws RemoteException, AbriException, NoeudCentralException
 	{
@@ -200,10 +203,10 @@ public class AbriBackend extends UnicastRemoteObject implements AbriLocalInterfa
 		}
 
 		switch ( message.getType() ) {
-			case SIGNALEMENT_DANGER :
+			case RECEVOIR_SIGNALEMENT_DANGER :
 				nous.memoriserMessageRecu(message); // Ajout à la liste des messages reçus par l'abri
 				break;
-			case SIGNALEMENT_EXISTENCE : // On met à jour notre liste quand quelqu'on nous réponds qu'il éxiste
+			case RECEVOIR_SIGNALEMENT_EXISTENCE : // On met à jour notre liste quand quelqu'on nous réponds qu'il éxiste
 				String[] parts = message.getContenu().split(SPLIT_CHAR);
 				String url = parts[0];
 				String groupe = parts[1];
@@ -212,13 +215,10 @@ public class AbriBackend extends UnicastRemoteObject implements AbriLocalInterfa
 					copains.add(url);
 				}
 				break;
-			case SIGNALEMENT_AUTORISATION_SC :
-				recevoirSC();
-				break;
-			case SIGNALEMENT_CONNECTION :
+			case RECEVOIR_SIGNALEMENT_CONNECTION :
 				enregistrerAbri(message.getUrlEmetteur(), message.getContenu());
 				break;
-			case SIGNALEMENT_DECONNECTION :
+			case RECEVOIR_SIGNALEMENT_DECONNECTION :
 				supprimerAbri(message.getUrlEmetteur());
 				break;
 			default :
@@ -230,7 +230,8 @@ public class AbriBackend extends UnicastRemoteObject implements AbriLocalInterfa
 	// SECTION CRITIQUE
 	//
 
-	private void recevoirSC() throws RemoteException, AbriException, NoeudCentralException
+	@Override
+	public void recevoirSC() throws RemoteException, AbriException, NoeudCentralException
 	{
 		System.out.println("ENTREE EN SC DE : " + notreURL);
 		// On transmet tout les messages en attentes...

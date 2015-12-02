@@ -5,11 +5,8 @@
  */
 package controle;
 
-import java.net.MalformedURLException;
-import java.rmi.NotBoundException;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
-import java.util.List;
 
 import modele.AbriException;
 import modele.Message;
@@ -21,16 +18,16 @@ import modele.NoeudCentralException;
  */
 public interface NoeudCentralRemoteInterface extends Remote
 {
-	void modifierAiguillage(String depuisUrl, List<String> versListeUrl) throws RemoteException, NoeudCentralException;
+	//void modifierAiguillage(String depuisUrl, List<String> versListeUrl) throws RemoteException, NoeudCentralException;
 
 	void transmettreMessage(Message message) throws RemoteException, AbriException, NoeudCentralException;
 
-	void connexionAbri(String urlAbri, String groupeAbri) throws RemoteException, NotBoundException, MalformedURLException, AbriException, NoeudCentralException;
+	//void connexionAbri(String urlAbri, String groupeAbri) throws RemoteException, NotBoundException, MalformedURLException, AbriException, NoeudCentralException;
 
 	void demanderSectionCritique(String url) throws RemoteException, AbriException, NoeudCentralException;
 
 	void quitterSectionCritique(String url) throws RemoteException, AbriException, NoeudCentralException;
 
-	void deconnecterAbri(String url) throws RemoteException, AbriException, NoeudCentralException;
+	//void deconnecterAbri(String url) throws RemoteException, AbriException, NoeudCentralException;
 
 }

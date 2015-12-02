@@ -23,7 +23,7 @@ public interface AbriRemoteInterface extends Remote
 
 	void recevoirMessage(modele.Message transmission) throws RemoteException, AbriException, NoeudCentralException;
 
-	//	void recevoirSC() throws RemoteException, AbriException, NoeudCentralException;
+	void recevoirSC() throws RemoteException, AbriException, NoeudCentralException;
 
 	String signalerGroupe() throws RemoteException; //FIXME
 

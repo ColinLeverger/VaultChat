@@ -49,14 +49,14 @@ public class NoeudCentralBackend extends UnicastRemoteObject implements NoeudCen
 		}
 	}
 
-	@Override
+	//	@Override
 	public void deconnecterAbri(final String url) throws AbriException, NoeudCentralException, RemoteException
 	{
 		// Faire un broadcast pour prévenir les autres qu'il y a un abri en moins
 		for ( Entry<String, AbriRemoteInterface> autreAbri : abris.getAbrisDistants().entrySet() ) {
 			if ( !autreAbri.getKey().equals(url) ) {
 				// FIXME
-				autreAbri.getValue().recevoirMessage(new Message(url, Arrays.asList(autreAbri.getKey()), MessageType.SIGNALEMENT_DECONNECTION));
+				autreAbri.getValue().recevoirMessage(new Message(url, Arrays.asList(autreAbri.getKey()), MessageType.RECEVOIR_SIGNALEMENT_DECONNECTION));
 				//	autreAbri.getValue().supprimerAbri(autreAbri.getKey());
 			}
 		}
@@ -74,7 +74,7 @@ public class NoeudCentralBackend extends UnicastRemoteObject implements NoeudCen
 		return abris;
 	}
 
-	@Override
+	//@Override
 	public void modifierAiguillage(final String depuisUrl, final List<String> versUrl) throws RemoteException, NoeudCentralException
 	{
 		System.out.println("JE SUIS LE NOEUD CENTRAL, JE ME RECONFIGURE DEPUIS " + depuisUrl + " VERS " + versUrl);
@@ -98,7 +98,7 @@ public class NoeudCentralBackend extends UnicastRemoteObject implements NoeudCen
 		}
 	}
 
-	@Override
+	//@Override
 	// le noeud central recoit un message signalant qu'un nouvel abri a rejoint le réseau
 	public void connexionAbri(final String urlAbriDistant, final String groupeAbri) throws RemoteException, NotBoundException, MalformedURLException, AbriException, NoeudCentralException
 	{
@@ -112,7 +112,7 @@ public class NoeudCentralBackend extends UnicastRemoteObject implements NoeudCen
 			if ( !autreAbri.getKey().equals(urlAbriDistant) ) {
 				System.out.println(autreAbri.getKey() + " RECOIS " + urlAbriDistant);
 				//autreAbri.getValue().enregistrerAbri(urlAbriDistant, groupeAbri);
-				autreAbri.getValue().recevoirMessage(new Message(urlAbriDistant, Arrays.asList(autreAbri.getKey()), groupeAbri, MessageType.SIGNALEMENT_CONNECTION));
+				autreAbri.getValue().recevoirMessage(new Message(urlAbriDistant, Arrays.asList(autreAbri.getKey()), groupeAbri, MessageType.RECEVOIR_SIGNALEMENT_CONNECTION));
 			}
 		}
 	}
@@ -124,8 +124,8 @@ public class NoeudCentralBackend extends UnicastRemoteObject implements NoeudCen
 		boolean available = sectionCritiqueControleur.demanderSectionCritique(url);
 		if ( available ) { // SC dispo immédiatement
 			sectionCritiqueControleur.setUrlEnSC(url);
-			//abris.chercherUrl(url).recevoirSC();
-			abris.chercherUrl(url).recevoirMessage(new Message(this.urlNoeud, Arrays.asList(url), MessageType.SIGNALEMENT_AUTORISATION_SC));
+			abris.chercherUrl(url).recevoirSC();
+			//	abris.chercherUrl(url).recevoirMessage(new Message(this.urlNoeud, Arrays.asList(url), MessageType.RECEVOIR_SIGNALEMENT_AUTORISATION_SC));
 		}
 	}
 
@@ -146,8 +146,8 @@ public class NoeudCentralBackend extends UnicastRemoteObject implements NoeudCen
 		if ( prochain != null ) {
 			System.out.println("JE SUIS LE NOEUD, UN ABRI A QUITTE LA SC ET JE LA DONNE MAINTENANT A " + prochain);
 			sectionCritiqueControleur.setUrlEnSC(prochain);
-			//	abris.chercherUrl(prochain).recevoirSC();
-			abris.chercherUrl(prochain).recevoirMessage(new Message(urlNoeud, Arrays.asList(prochain), MessageType.SIGNALEMENT_AUTORISATION_SC));
+			abris.chercherUrl(prochain).recevoirSC();
+			//	abris.chercherUrl(prochain).recevoirMessage(new Message(urlNoeud, Arrays.asList(prochain), MessageType.RECEVOIR_SIGNALEMENT_AUTORISATION_SC));
 		} else {
 			System.out.println("JE SUIS LE NOEUD, UN ABRI A QUITTE LA SC ET PERSONNE EN ATTENTE");
 		}
