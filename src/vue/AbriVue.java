@@ -322,7 +322,7 @@ public class AbriVue extends JFrame implements Observer
 				ajusterEtatBoutons();
 			} catch ( Exception ex ) {
 				ex.printStackTrace();
-				afficherErreur("Erreur de deconnexion", ex.getMessage());
+				afficherErreur("Erreur de connexion", ex.getMessage());
 			}
 		}
 	}//GEN-LAST:event_connectionBoutonActionPerformed

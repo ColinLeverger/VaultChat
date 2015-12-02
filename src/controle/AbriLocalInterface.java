@@ -17,6 +17,14 @@ import modele.NoeudCentralException;
  *
  * @author Gwenole Lecorve
  * @author David Guennec
+ * @author Maelig Nantel
+ * @author Colin Leverger
+ * 
+ *         Classe permettant de communiquer de manière locale avec notre abri.
+ *         Utilisée pour la gestion des vues et donc non liée à RMI. La vue gère
+ *         les intéractions avec l'utilisateur. <br>
+ *         Pour la documentation des méthodes, se référer à la classe
+ *         d'implémentation.
  */
 public interface AbriLocalInterface
 {

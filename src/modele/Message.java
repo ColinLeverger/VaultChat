@@ -7,6 +7,7 @@ package modele;
 
 import java.io.Serializable;
 import java.sql.Timestamp;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -30,14 +31,40 @@ public class Message implements Serializable
 		this.urlDestinataire = _urlDestinataire;
 		this.type = type;
 		this.timestamp = new Timestamp(System.currentTimeMillis()).toString();
-
-		// Pour un message de creation, on a pas de contenu alors on utilise ce paramètre pour stocker le groupe du nouvel abri.
 		this.contenu = _contenu;
 	}
 
 	public Message(final String _urlEmetteur, final List<String> _urlDestinataire, final MessageType type)
 	{
 		this(_urlEmetteur, _urlDestinataire, null, type);
+	}
+
+	/**
+	 * Constructeur permettant d'envoyer un message à un seul destinataire, sans
+	 * contenu.
+	 * 
+	 * @param _urlEmetteur
+	 * @param _urlDestinataire
+	 * @param type
+	 */
+	public Message(final String _urlEmetteur, final String _urlDestinataire, final MessageType type)
+	{
+		this(_urlEmetteur, Arrays.asList(_urlDestinataire), type);
+
+	}
+
+	/**
+	 * Constructeur permettant d'envoyer un message à un seul destinataire, avec
+	 * contenu.
+	 * 
+	 * @param _urlEmetteur
+	 * @param _urlDestinataire
+	 * @param contenu
+	 * @param type
+	 */
+	public Message(final String _urlEmetteur, final String _urlDestinataire, final String contenu, final MessageType type)
+	{
+		this(_urlEmetteur, Arrays.asList(_urlDestinataire), contenu, type);
 	}
 
 	public MessageType getType()

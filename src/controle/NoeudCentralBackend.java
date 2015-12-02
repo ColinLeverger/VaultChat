@@ -5,7 +5,6 @@ import java.rmi.Naming;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map.Entry;
 
@@ -56,7 +55,7 @@ public class NoeudCentralBackend extends UnicastRemoteObject implements NoeudCen
 		for ( Entry<String, AbriRemoteInterface> autreAbri : abris.getAbrisDistants().entrySet() ) {
 			if ( !autreAbri.getKey().equals(url) ) {
 				// FIXME
-				autreAbri.getValue().recevoirMessage(new Message(url, Arrays.asList(autreAbri.getKey()), MessageType.SIGNALEMENT_DECONNECTION));
+				autreAbri.getValue().recevoirMessage(new Message(url, autreAbri.getKey(), MessageType.SIGNALEMENT_DECONNECTION));
 				//	autreAbri.getValue().supprimerAbri(autreAbri.getKey());
 			}
 		}
@@ -112,7 +111,7 @@ public class NoeudCentralBackend extends UnicastRemoteObject implements NoeudCen
 			if ( !autreAbri.getKey().equals(urlAbriDistant) ) {
 				System.out.println(autreAbri.getKey() + " RECOIS " + urlAbriDistant);
 				//autreAbri.getValue().enregistrerAbri(urlAbriDistant, groupeAbri);
-				autreAbri.getValue().recevoirMessage(new Message(urlAbriDistant, Arrays.asList(autreAbri.getKey()), groupeAbri, MessageType.SIGNALEMENT_CONNECTION));
+				autreAbri.getValue().recevoirMessage(new Message(urlAbriDistant, autreAbri.getKey(), groupeAbri, MessageType.SIGNALEMENT_CONNECTION));
 			}
 		}
 	}
@@ -125,7 +124,7 @@ public class NoeudCentralBackend extends UnicastRemoteObject implements NoeudCen
 		if ( available ) { // SC dispo immédiatement
 			sectionCritiqueControleur.setUrlEnSC(url);
 			//abris.chercherUrl(url).recevoirSC();
-			abris.chercherUrl(url).recevoirMessage(new Message(this.urlNoeud, Arrays.asList(url), MessageType.SIGNALEMENT_AUTORISATION_SC));
+			abris.chercherUrl(url).recevoirMessage(new Message(this.urlNoeud, url, MessageType.SIGNALEMENT_AUTORISATION_SC));
 		}
 	}
 
@@ -147,7 +146,7 @@ public class NoeudCentralBackend extends UnicastRemoteObject implements NoeudCen
 			System.out.println("JE SUIS LE NOEUD, UN ABRI A QUITTE LA SC ET JE LA DONNE MAINTENANT A " + prochain);
 			sectionCritiqueControleur.setUrlEnSC(prochain);
 			//	abris.chercherUrl(prochain).recevoirSC();
-			abris.chercherUrl(prochain).recevoirMessage(new Message(urlNoeud, Arrays.asList(prochain), MessageType.SIGNALEMENT_AUTORISATION_SC));
+			abris.chercherUrl(prochain).recevoirMessage(new Message(urlNoeud, prochain, MessageType.SIGNALEMENT_AUTORISATION_SC));
 		} else {
 			System.out.println("JE SUIS LE NOEUD, UN ABRI A QUITTE LA SC ET PERSONNE EN ATTENTE");
 		}
