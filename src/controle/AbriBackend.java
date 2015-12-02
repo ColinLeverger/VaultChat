@@ -5,6 +5,8 @@
  */
 package controle;
 
+import modele.*;
+
 import java.net.MalformedURLException;
 import java.rmi.Naming;
 import java.rmi.NotBoundException;
@@ -15,14 +17,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicBoolean;
-
-import modele.Abri;
-import modele.AbriException;
-import modele.Adresses;
-import modele.AnnuaireAbri;
-import modele.Message;
-import modele.MessageType;
-import modele.NoeudCentralException;
 
 /**
  * @author Gwenole Lecorve
@@ -50,13 +44,13 @@ public class AbriBackend extends UnicastRemoteObject implements AbriLocalInterfa
 
 	public AbriBackend(final String url, final Abri abri) throws RemoteException // Obligé de throws due à la super class
 	{
-		System.out.println("CONSTRUCTION DE ABRI BACKEND AVEC POUR URL : " + url + " OK.");
 		this.notreURL = url;
 		this.abri = abri;
 		this.abrisDistants = new AnnuaireAbri(); // Chaque abris connait tout les abris éxistant (peut importe la zone)
-		this.copains = new ArrayList<>(); // Abris présent dans abrisDistants et étant aussi dans notre zone de danger
+		this.copains = new ArrayList<>();        // Abris présent dans abrisDistants et étant aussi dans notre zone de danger
 		this.messagesEnAttente = new ArrayList<>();
 		this.demandeSC = new AtomicBoolean(false);
+        System.out.println("CONSTRUCTION DE ABRI BACKEND AVEC POUR URL : " + url + " OK.");
 	}
 
 	//
@@ -117,7 +111,7 @@ public class AbriBackend extends UnicastRemoteObject implements AbriLocalInterfa
 				Remote remote = Naming.lookup(name);
 				if ( remote instanceof NoeudCentralRemoteInterface ) {
 					if ( noeudRemote == null ) { // Le noeud central est unique
-						System.out.println("LE NOEUD CENTRALE VIENS D'ETRE INITIALISE SUR L'URL -> " + name);
+						System.out.println("LE NOEUD CENTRAL VIENT D'ETRE INITIALISE SUR L'URL -> " + name);
 						noeudURL = name;
 						noeudRemote = (NoeudCentralRemoteInterface) remote;
 					} else {
@@ -148,6 +142,7 @@ public class AbriBackend extends UnicastRemoteObject implements AbriLocalInterfa
 		copains.clear();
 
 		abri.deconnecter();
+		System.out.println("ABRI " + notreURL + " DECONNECTE");
 		Naming.unbind(notreURL); // Retrait de l'annuaire RMI
 	}
 
@@ -155,7 +150,7 @@ public class AbriBackend extends UnicastRemoteObject implements AbriLocalInterfa
 	// On recoit un message du noeud central signalant l'éxistence d'un nouvel abri dans le réseau
 	public void enregistrerAbri(final String urlDistant, final String groupe) throws RemoteException
 	{
-		System.out.println("Ajout de " + urlDistant + " dans la liste des abris distants de " + notreURL);
+		System.out.println("AJOUT DE " + urlDistant + " DANS LISTE ABRIS DISTANTS DE " + notreURL);
 		// On commence par le rajouter dans notre liste d'abris et de mettre à jour notre liste de copains...
 		abrisDistants.ajouterAbriDistant(urlDistant, groupe);
 		calculCopains();
@@ -170,7 +165,7 @@ public class AbriBackend extends UnicastRemoteObject implements AbriLocalInterfa
 	@Override
 	public void supprimerAbri(final String urlDistant)
 	{
-		System.out.println(notreURL + ": \tOubli de l'abri " + urlDistant);
+        System.out.println("RETRAIT DE " + urlDistant + " DANS LISTE ABRIS DISTANTS DE " + notreURL);
 		abrisDistants.retirerAbriDistant(urlDistant);
 		calculCopains();
 	}
@@ -182,7 +177,7 @@ public class AbriBackend extends UnicastRemoteObject implements AbriLocalInterfa
 	@Override
 	public void emettreMessageDanger(final String message) throws InterruptedException, RemoteException, AbriException, NoeudCentralException
 	{
-		System.out.println("@@@ Ajout d'un message en attente et demande de la SC");
+		System.out.println("AJOUT DE MESSAGE DANGER DS FILE D'ATTENDE DE " + notreURL);
 		calculCopains(); // On s'assure que notre liste de copains est à jour
 		ajouterMesageTampon(new Message(notreURL, copains, message, MessageType.SIGNALEMENT_DANGER));
 	}
@@ -207,7 +202,7 @@ public class AbriBackend extends UnicastRemoteObject implements AbriLocalInterfa
 				String[] parts = message.getContenu().split("|");
 				String url = parts[0];
 				String groupe = parts[1];
-				System.out.println("@@@ Recevoir signalement de danger on a récupéré via split : url -> " + url + " et groupe -> " + groupe);
+				System.out.println("RECEVOIR SIGNALEMENT EXISTANCE VIA SPLIT DE : url -> " + url + " et groupe -> " + groupe);
 				abrisDistants.ajouterAbriDistant(url, groupe);
 				calculCopains();
 				break;
@@ -224,7 +219,7 @@ public class AbriBackend extends UnicastRemoteObject implements AbriLocalInterfa
 	@Override
 	public void recevoirSC() throws RemoteException, AbriException, NoeudCentralException
 	{
-		System.out.println("Abris backend Recevoir SC --> url : " + notreURL + " viens de recevoir la SC");
+		System.out.println("ENTREE EN SC DE : " + notreURL);
 		// On transmet tout les messages en attentes...
 		for ( Message message : getMessagesEnAttente() ) {
 			System.err.println("Envoie d'un message depuis " + message.getUrlEmetteur() + "vers " + message.getUrlDestinataire() + " avec pour contenu: " + message.getContenu());
@@ -233,7 +228,7 @@ public class AbriBackend extends UnicastRemoteObject implements AbriLocalInterfa
 		getMessagesEnAttente().clear(); // Tout a été envoyé, alors on vide le tampon
 
 		// ... puis on libère directement la section critique.
-		System.out.println("@@@ on a finis de faire ce qu'on veut en SC donc on la libère");
+		System.out.println("SORTIE EN SC DE : " + notreURL);
 		demandeSC.set(false); // On a reçu la SC donc on ne la demande plus immédiatement
 		noeudRemote.quitterSectionCritique(notreURL);
 	}
