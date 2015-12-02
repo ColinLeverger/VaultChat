@@ -55,8 +55,17 @@ public class NoeudCentralBackend extends UnicastRemoteObject implements NoeudCen
 	@Override
 	public synchronized void deconnecterAbri(final String url)
 	{
-		System.out.println("Deconnection de l'abri");
 		// Faire un broadcast pour les autres
+		for ( Entry<String, AbriRemoteInterface> autreAbri : abris.getAbrisDistants().entrySet() ) {
+			if ( !autreAbri.getKey().equals(url) ) {
+				try {
+					autreAbri.getValue().supprimerAbri(autreAbri.getKey());
+				} catch ( RemoteException e ) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}
 
 		// Mettre à jour son annuaire
 		abris.retirerAbriDistant(url);

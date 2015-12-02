@@ -117,7 +117,7 @@ public class AbriBackend extends UnicastRemoteObject implements AbriLocalInterfa
 				Remote remote = Naming.lookup(name);
 				if ( remote instanceof NoeudCentralRemoteInterface ) {
 					if ( noeudRemote == null ) { // Le noeud central est unique
-						System.out.println("@@@ Initialisation du noeud central --> " + name);
+						System.out.println("LE NOEUD CENTRALE VIENS D'ETRE INITIALISE SUR L'URL -> " + name);
 						noeudURL = name;
 						noeudRemote = (NoeudCentralRemoteInterface) remote;
 					} else {
@@ -168,7 +168,7 @@ public class AbriBackend extends UnicastRemoteObject implements AbriLocalInterfa
 	}
 
 	@Override
-	public synchronized void supprimerAbri(final String urlDistant)
+	public void supprimerAbri(final String urlDistant)
 	{
 		System.out.println(notreURL + ": \tOubli de l'abri " + urlDistant);
 		abrisDistants.retirerAbriDistant(urlDistant);
@@ -227,7 +227,7 @@ public class AbriBackend extends UnicastRemoteObject implements AbriLocalInterfa
 		System.out.println("Abris backend Recevoir SC --> url : " + notreURL + " viens de recevoir la SC");
 		// On transmet tout les messages en attentes...
 		for ( Message message : getMessagesEnAttente() ) {
-			System.out.println("Envoie d'un message depuis " + message.getUrlEmetteur() + "vers " + message.getUrlDestinataire() + " avec pour contenu: " + message.getContenu());
+			System.err.println("Envoie d'un message depuis " + message.getUrlEmetteur() + "vers " + message.getUrlDestinataire() + " avec pour contenu: " + message.getContenu());
 			noeudRemote.transmettreMessage(message);
 		}
 		getMessagesEnAttente().clear(); // Tout a été envoyé, alors on vide le tampon
