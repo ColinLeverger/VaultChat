@@ -17,14 +17,5 @@ import modele.NoeudCentralException;
  */
 public interface AbriRemoteInterface extends Remote
 {
-	//void enregistrerAbri(String urlAbriDistant, String groupe) throws RemoteException;
-
-	//void supprimerAbri(String urlASupprimer) throws RemoteException;
-
 	void recevoirMessage(modele.Message transmission) throws RemoteException, AbriException, NoeudCentralException;
-
-	//	void recevoirSC() throws RemoteException, AbriException, NoeudCentralException;
-
-	String signalerGroupe() throws RemoteException; //FIXME
-
 }

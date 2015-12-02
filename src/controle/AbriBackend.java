@@ -1,8 +1,4 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
+
 package controle;
 
 import java.net.MalformedURLException;
@@ -72,12 +68,6 @@ public class AbriBackend extends UnicastRemoteObject implements AbriLocalInterfa
 	}
 
 	@Override
-	public String signalerGroupe() throws RemoteException
-	{
-		return nous.donnerGroupe();
-	}
-
-	@Override
 	public boolean estConnecte()
 	{
 		return nous.estConnecte();
@@ -87,14 +77,6 @@ public class AbriBackend extends UnicastRemoteObject implements AbriLocalInterfa
 	public AnnuaireAbri getAnnuaire()
 	{
 		return abrisDistants;
-		//TODO
-		// On veut seulement afficher les abris qui sont dans notre groupe, donc on reconstruit un abris composé uniquement de nos copains.
-		//		calculCopains();
-		//		AnnuaireAbri annuaireCopains = new AnnuaireAbri();
-		//		for ( String copain : copains ) {
-		//			annuaireCopains.ajouterAbriDistant(copain, nous.donnerGroupe());
-		//		}
-		//		return annuaireCopains;
 	}
 
 	private List<Message> getMessagesEnAttente()
@@ -233,17 +215,20 @@ public class AbriBackend extends UnicastRemoteObject implements AbriLocalInterfa
 	private void recevoirSC() throws RemoteException, AbriException, NoeudCentralException
 	{
 		System.out.println("ENTREE EN SC DE : " + notreURL);
-		// On transmet tout les messages en attentes...
-		for ( Message message : getMessagesEnAttente() ) {
-			System.err.println("ENVOIE D'UN MESSAGE DEPUIS " + message.getUrlEmetteur() + " VERS " + message.getUrlDestinataire() + " AVEC POUR CONTENU: " + message.getContenu());
-			noeudRemote.transmettreMessage(message);
-		}
-		getMessagesEnAttente().clear(); // Tout a été envoyé, alors on vide le tampon
+		try {
+			// On transmet tout les messages en attentes...
+			for ( Message message : getMessagesEnAttente() ) {
+				System.err.println("ENVOIE D'UN MESSAGE DEPUIS " + message.getUrlEmetteur() + " VERS " + message.getUrlDestinataire() + " AVEC POUR CONTENU: " + message.getContenu());
+				noeudRemote.transmettreMessage(message);
+			}
+			getMessagesEnAttente().clear(); // Tout a été envoyé, alors on vide le tampon
 
-		// ... puis on libère directement la section critique.
-		System.out.println("DEMANDE DE SORTIE SC DE : " + notreURL);
-		demandeSC = false;
-		noeudRemote.quitterSectionCritique(notreURL);
+			// ... puis on libère directement la section critique.
+			System.out.println("DEMANDE DE SORTIE SC DE : " + notreURL);
+			demandeSC = false;
+		} finally {
+			noeudRemote.quitterSectionCritique(notreURL);
+		}
 	}
 
 	//
