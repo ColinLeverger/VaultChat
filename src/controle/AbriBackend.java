@@ -106,10 +106,6 @@ public class AbriBackend extends UnicastRemoteObject implements AbriLocalInterfa
 		System.out.println("CONSTRUCTION DE ABRI BACKEND AVEC POUR URL : " + url + " OK.");
 	}
 
-	//
-	// GETTERS / SETTERS
-	//
-
 	/**
 	 * Ajout d'un message dans un tampon en attendant leur envoi effectif. Lors
 	 * d'un ajout, si nous n'étions pas déjà en attente de la section critique,
@@ -234,10 +230,6 @@ public class AbriBackend extends UnicastRemoteObject implements AbriLocalInterfa
 		ajouterMesageTampon(new Message(this.notreURL, urlNouveau, contenu, MessageType.SIGNALEMENT_EXISTENCE));
 	}
 
-	// ================================
-	// CONNECTION / DECONNECTION D'ABRI
-	// ================================
-
 	@Override
 	public boolean estConnecte()
 	{
@@ -272,10 +264,6 @@ public class AbriBackend extends UnicastRemoteObject implements AbriLocalInterfa
 		return this.messagesEnAttente;
 	}
 
-	// =================================
-	// EMISSION ET RECEPTION DE MESSAGES
-	// =================================
-
 	public String getNoeudURL()
 	{
 		return this.noeudURL;
@@ -286,10 +274,6 @@ public class AbriBackend extends UnicastRemoteObject implements AbriLocalInterfa
 	{
 		return this.notreURL;
 	}
-
-	// ================
-	// SECTION CRITIQUE
-	// ================
 
 	/**
 	 * Méthode éxécutée lorsque le noeud central nous informe qu'un abri
@@ -302,10 +286,6 @@ public class AbriBackend extends UnicastRemoteObject implements AbriLocalInterfa
 		this.abrisDistants.retirerAbriDistant(urlAOublier);
 		this.copains.remove(urlAOublier); // Ne fait rien si l'abri que l'on déconnecte n'étais pas un copain donc pas besoin de faire de vérifications.
 	}
-
-	// ===========
-	// UTILITAIRES
-	// ===========
 
 	/**
 	 * Méthode permettant de recevoir un message ayant transité par le noeud

@@ -42,7 +42,7 @@ public class NoeudCentralBackend extends UnicastRemoteObject implements NoeudCen
 	 * mutuelle, il suffit de modifier cette classe si on veut changer
 	 * d'algorithme.
 	 */
-	private final SectionCritiqueControleurFIFO sectionCritiqueControleur; // Controleur gérant la section critique. Mettre l'algorithme d'exclusion mutuelle ici.
+	private final SectionCritiqueControleurFIFO sectionCritiqueControleur;
 
 	/**
 	 * Annuaire associat pour chaque adresse URL une instance
@@ -50,10 +50,6 @@ public class NoeudCentralBackend extends UnicastRemoteObject implements NoeudCen
 	 * les abris connectés au réseau doivent se trouver dans cet annuaire.
 	 */
 	private AnnuaireNoeudCentral abris;
-
-	// ===========
-	// CONSTRUCTOR
-	// ===========
 
 	public NoeudCentralBackend(final String url) throws RemoteException, MalformedURLException
 	{
@@ -63,10 +59,6 @@ public class NoeudCentralBackend extends UnicastRemoteObject implements NoeudCen
 		this.abris = new AnnuaireNoeudCentral();
 		Naming.rebind(this.noeudURL, this); // Publication dans l'annuaire RMI
 	}
-
-	// =================
-	// GETTERS / SETTERS
-	// =================
 
 	/**
 	 * Le noeud central recoit un message de la part d'un nouvel abri signalant
@@ -108,10 +100,6 @@ public class NoeudCentralBackend extends UnicastRemoteObject implements NoeudCen
 		// Mettre à jour son annuaire
 		this.abris.retirerAbriDistant(urlAbriDeconecte);
 	}
-
-	// ====================
-	// GESTION DES MESSAGES
-	// ====================
 
 	/**
 	 * Méthode éxécutée lorsque le noeud central recoit une demande d'un abri
@@ -200,10 +188,6 @@ public class NoeudCentralBackend extends UnicastRemoteObject implements NoeudCen
 			System.out.println("JE SUIS LE NOEUD, UN ABRI A QUITTE LA SC ET PERSONNE EN ATTENTE");
 		}
 	}
-
-	// ===========
-	// UTILITAIRES
-	// ===========
 
 	/**
 	 * Effectue le passe plat pour la transmission d'un message. L'aiguillage

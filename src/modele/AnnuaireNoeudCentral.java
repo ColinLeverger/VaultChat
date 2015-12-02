@@ -14,8 +14,7 @@ import controle.AbriRemoteInterface;
 /**
  * Anciennement nommé "Annuaire". Modélise l'annuaire du noeud central. L'accès
  * à cet annuaire est protégé contre les accès concurents à l'aide de blocs
- * 'synchronized'. FIXME: ne doit maintenant plus être nécésaire si la section
- * critique est correctement gérée !
+ * 'synchronized'.
  *
  * @author Gwenole Lecorve
  * @author David Guennec
@@ -34,29 +33,23 @@ public class AnnuaireNoeudCentral extends Observable
 
 	public void ajouterAbriDistant(final String url, final AbriRemoteInterface abri)
 	{
-		//	synchronized ( abrisDistants ) {
 		this.abrisDistants.put(url, abri);
 		notifierObservateurs();
-		//	}
 	}
 
 	public AbriRemoteInterface chercherUrl(final String urlDistant) throws AbriException
 	{
-		//	synchronized ( abrisDistants ) {
 		AbriRemoteInterface abri = this.abrisDistants.get(urlDistant);
 		if ( abri == null ) {
 			throw new AbriException("Abri " + urlDistant + " introuvable dans l'annuaire local.");
 		} else {
 			return abri;
-			//		}
 		}
 	}
 
 	public Map<String, AbriRemoteInterface> getAbrisDistants()
 	{
-		//	synchronized ( abrisDistants ) {
 		return this.abrisDistants;
-		//	}
 	}
 
 	protected void notifierObservateurs()
@@ -67,18 +60,14 @@ public class AnnuaireNoeudCentral extends Observable
 
 	public void retirerAbriDistant(final String url)
 	{
-		//	synchronized ( abrisDistants ) {
 		this.abrisDistants.remove(url);
 		notifierObservateurs();
-		//}
 	}
 
 	public void vider()
 	{
-		//	synchronized ( abrisDistants ) {
 		this.abrisDistants.clear();
 		notifierObservateurs();
-		//	}
 	}
 
 }
