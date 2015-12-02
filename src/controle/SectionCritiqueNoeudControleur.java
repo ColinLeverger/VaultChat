@@ -60,7 +60,6 @@ public class SectionCritiqueNoeudControleur implements ControleurInterface
 		synchronized ( listeAttenteSectionCritique ) {
 			if ( !listeAttenteSectionCritique.isEmpty() ) {
 				prochain = listeAttenteSectionCritique.removeLast(); // On prends la fin de liste (FIFO)
-
 			}
 		}
 		return prochain; // url du prochain abris à qui on doit donner la SC. Null si personne.

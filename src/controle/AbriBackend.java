@@ -33,6 +33,7 @@ public class AbriBackend extends UnicastRemoteObject implements AbriLocalInterfa
 	private static final long serialVersionUID = -7291203652359910179L;
 
 	private static final String SPLIT_CHAR = "#";
+	private static final String RMI_ADDRESS_PREFIX = "rmi:";
 
 	protected final String notreURL; // URL de notre Abri (nous)
 	protected Abri abri;
@@ -114,7 +115,7 @@ public class AbriBackend extends UnicastRemoteObject implements AbriLocalInterfa
 
 		// Initialisation du noeud central
 		for ( String name : Naming.list(Adresses.archetypeAdresseNoeudCentral()) ) {
-			name = "rmi:" + name;
+			name = RMI_ADDRESS_PREFIX + name;
 			if ( !name.equals(notreURL) ) {
 				Remote remote = Naming.lookup(name);
 				if ( remote instanceof NoeudCentralRemoteInterface ) {
