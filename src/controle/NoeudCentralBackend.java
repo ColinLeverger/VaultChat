@@ -30,16 +30,16 @@ public class NoeudCentralBackend extends UnicastRemoteObject implements NoeudCen
 
 	protected String url;
 	protected NoeudCentral noeudCentral;
-	protected SectionCritiqueNoeudControleur noeudControleur;
-	protected AnnuaireNoeudCentral abris;
+	protected SectionCritiqueNoeudControleur sectionCritiqueControleur; // Controleur gérant la section critique. Mettre l'algorithme d'exclusion mutuelle ici.
+	protected AnnuaireNoeudCentral abris; // Le noeud connait tous les abris du réseau.
 
-	public NoeudCentralBackend(final String _url) throws RemoteException, MalformedURLException
+	public NoeudCentralBackend(final String url) throws RemoteException, MalformedURLException
 	{
-		this.url = _url;
+		this.url = url;
 		noeudCentral = new NoeudCentral();
-		noeudControleur = new SectionCritiqueNoeudControleur(this.url);
+		sectionCritiqueControleur = new SectionCritiqueNoeudControleur(this.url);
 		abris = new AnnuaireNoeudCentral();
-		Naming.rebind(url, this);
+		Naming.rebind(this.url, this);
 	}
 
 	@Override
@@ -53,20 +53,19 @@ public class NoeudCentralBackend extends UnicastRemoteObject implements NoeudCen
 	}
 
 	@Override
-	public synchronized void deconnecterAbri(final String url)
+	public void deconnecterAbri(final String url)
 	{
-		// Faire un broadcast pour les autres
+		// Faire un broadcast pour prévenir les autres qu'il y a un abri en moins
 		for ( Entry<String, AbriRemoteInterface> autreAbri : abris.getAbrisDistants().entrySet() ) {
 			if ( !autreAbri.getKey().equals(url) ) {
 				try {
 					autreAbri.getValue().supprimerAbri(autreAbri.getKey());
 				} catch ( RemoteException e ) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
+					System.exit(-1);
 				}
 			}
 		}
-
 		// Mettre à jour son annuaire
 		abris.retirerAbriDistant(url);
 	}
@@ -84,7 +83,7 @@ public class NoeudCentralBackend extends UnicastRemoteObject implements NoeudCen
 	@Override
 	public void modifierAiguillage(final String depuisUrl, final ArrayList<String> versUrl) throws RemoteException, NoeudCentralException
 	{
-		System.out.print(url + ": \tReconfiguration du r�seau de " + depuisUrl + " vers " + versUrl);
+		System.out.print(url + ": \t RECONFIGURATION DU RESEAU " + depuisUrl + " VERS " + versUrl);
 		noeudCentral.reconfigurerAiguillage(depuisUrl, versUrl);
 	}
 
@@ -92,15 +91,14 @@ public class NoeudCentralBackend extends UnicastRemoteObject implements NoeudCen
 	// On doit avoir la section critique quand on est dans cette méthode. On ne doit pas quitter la SC dans cette méthode.
 	public void transmettreMessage(final Message message) throws RemoteException, AbriException, NoeudCentralException
 	{
-		System.out.println("@@@ ENTREE METHODE TRANSMETTRE MESSAGE DU NOEUD CENTRAL BACKEND");
 		modifierAiguillage(message.getUrlEmetteur(), message.getUrlDestinataire());
 		try {
 			noeudCentral.demarrerTransmission();
 			// Tous les destinataires recoivent
 			for ( String abri : noeudCentral.getVersUrl() ) {
 				abris.chercherUrl(abri).recevoirMessage(message);
+				System.out.println("ABRI '" + abri + "' VIENS DE RECEVOIR LE MESSAGE '" + message + "'");
 			}
-			System.out.println("@@@ ENVOIE DES MESSAGES TERMINES");
 		} finally {
 			noeudCentral.stopperTransmission();
 		}
@@ -111,14 +109,12 @@ public class NoeudCentralBackend extends UnicastRemoteObject implements NoeudCen
 	public void creerAbri(final String urlAbriDistant, final String groupeAbri) throws RemoteException, NotBoundException, MalformedURLException
 	{
 		// On mémorise dans l'annuaire du noeud central
-		System.out.println(url + ": \tEnregistrement de l'abri dans l'annuaire du noeud central " + urlAbriDistant);
 		AbriRemoteInterface abriDistant = (AbriRemoteInterface) Naming.lookup(urlAbriDistant);
 		abris.ajouterAbriDistant(urlAbriDistant, abriDistant);
 
 		// On envoie un broadcast à tout les abris éxistants pour signaler la présence du nouveau.
 		for ( Entry<String, AbriRemoteInterface> autreAbri : abris.getAbrisDistants().entrySet() ) {
 			if ( !autreAbri.getKey().equals(urlAbriDistant) ) {
-				System.out.println("@@@ L'abris distant " + autreAbri.getKey() + " a été par le noeud central que l'abris " + urlAbriDistant + " viens de se connecter.");
 				autreAbri.getValue().enregistrerAbri(urlAbriDistant, groupeAbri);
 			}
 		}
@@ -127,15 +123,14 @@ public class NoeudCentralBackend extends UnicastRemoteObject implements NoeudCen
 	@Override
 	public synchronized void demanderSectionCritique(final String url) throws RemoteException
 	{
-		boolean available = noeudControleur.demanderSectionCritique(url);
+		boolean available = sectionCritiqueControleur.demanderSectionCritique(url);
 		if ( available ) { // SC dispo immédiatement
 			try {
-				System.out.println("SC dispo on donne l'autorisaiton");
-				noeudControleur.setUrlEnSC(url);
+				sectionCritiqueControleur.setUrlEnSC(url);
 				abris.chercherUrl(url).recevoirSC();
 			} catch ( AbriException | NoeudCentralException e ) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
+				System.exit(-1);
 			}
 		}
 	}
@@ -143,27 +138,26 @@ public class NoeudCentralBackend extends UnicastRemoteObject implements NoeudCen
 	@Override
 	public void quitterSectionCritique(final String url) throws RemoteException
 	{
-		System.out.println("Abri demande à quitter la SC");
 		// On enregistre le fait que l'abris actuel libère la SC
 		String prochain = null;
 		try {
-			prochain = noeudControleur.quitterSectionCritique(url);
+			prochain = sectionCritiqueControleur.quitterSectionCritique(url);
 		} catch ( IllegalAccessException e ) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
+			System.exit(-1); // FIXME
 		}
 
 		// Un abri était en attente pour avoir la SC, on la lui donne
 		if ( prochain != null ) {
 			try {
-				noeudControleur.setUrlEnSC(prochain);
+				sectionCritiqueControleur.setUrlEnSC(prochain);
 				abris.chercherUrl(prochain).recevoirSC();
 			} catch ( AbriException e ) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
+				System.exit(-1);
 			} catch ( NoeudCentralException e ) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
+				System.exit(-1);
 			}
 		}
 	}
