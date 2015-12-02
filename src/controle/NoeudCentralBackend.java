@@ -5,7 +5,7 @@ import java.rmi.Naming;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
-import java.util.ArrayList;
+import java.util.List;
 import java.util.Map.Entry;
 
 import modele.AbriException;
@@ -76,7 +76,7 @@ public class NoeudCentralBackend extends UnicastRemoteObject implements NoeudCen
 	}
 
 	@Override
-	public void modifierAiguillage(final String depuisUrl, final ArrayList<String> versUrl) throws RemoteException, NoeudCentralException
+	public void modifierAiguillage(final String depuisUrl, final List<String> versUrl) throws RemoteException, NoeudCentralException
 	{
 		System.out.println("JE SUIS LE NOEUD CENTRAL, JE ME RECONFIGURE DEPUIS " + depuisUrl + " VERS " + versUrl);
 		noeudCentral.reconfigurerAiguillage(depuisUrl, versUrl);

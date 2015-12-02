@@ -7,7 +7,7 @@ package modele;
 
 import java.io.Serializable;
 import java.sql.Timestamp;
-import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Classe representant une information envoyee par un abri vers un autre
@@ -19,12 +19,12 @@ public class Message implements Serializable
 {
 	private static final long serialVersionUID = 528762786790366521L;
 	protected String urlEmetteur;
-	protected ArrayList<String> urlDestinataire;
+	protected List<String> urlDestinataire;
 	protected String contenu; // N'a de sens que pour un message de type "SIGNALEMENT_DANGER"
 	protected String timestamp;
 	protected final MessageType type;
 
-	public Message(final String _urlEmetteur, final ArrayList<String> _urlDestinataire, final String _contenu, final MessageType type)
+	public Message(final String _urlEmetteur, final List<String> _urlDestinataire, final String _contenu, final MessageType type)
 	{
 		this.urlEmetteur = _urlEmetteur;
 		this.urlDestinataire = _urlDestinataire;
@@ -35,7 +35,7 @@ public class Message implements Serializable
 		this.contenu = _contenu;
 	}
 
-	public Message(final String _urlEmetteur, final ArrayList<String> _urlDestinataire, final MessageType type)
+	public Message(final String _urlEmetteur, final List<String> _urlDestinataire, final MessageType type)
 	{
 		this(_urlEmetteur, _urlDestinataire, null, type);
 	}
@@ -55,7 +55,7 @@ public class Message implements Serializable
 		return this.timestamp;
 	}
 
-	public ArrayList<String> getUrlDestinataire()
+	public List<String> getUrlDestinataire()
 	{
 		return this.urlDestinataire;
 	}

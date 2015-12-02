@@ -8,6 +8,7 @@ package vue;
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
 
@@ -112,15 +113,15 @@ public class NoeudCentralVue extends javax.swing.JFrame implements Observer
 	private javax.swing.JPanel transmissionPanel;
 	// End of variables declaration//GEN-END:variables
 
-	protected void ajusterListe(final JList liste, final ArrayList<String> urlASelectionner)
+	protected void ajusterListe(final JList liste, final List<String> list)
 	{
 		// int selectionNouvelIndex;
 		SortedListModel listModel = (SortedListModel) liste.getModel();
-		Iterator<String> itr = urlASelectionner.iterator();
+		Iterator<String> itr = list.iterator();
 		String element = null;
 
 		try {
-			int[] selectedIndices = new int[urlASelectionner.size()];
+			int[] selectedIndices = new int[list.size()];
 			int i = 0;
 
 			while ( itr.hasNext() ) {

@@ -50,7 +50,7 @@ public class AbriVue extends JFrame implements Observer
 		setResizable(false);
 		setTitle("Abri - " + backend.getUrl());
 		urlTextField.setText(backend.getUrl());
-		etatLabel.setText("<html><a color=red>D�connect�</a></html>");
+		etatLabel.setText("<html><a color=red>Deconnecte</a></html>");
 
 		emettreBouton.setEnabled(false);
 		demarrerToggleBouton.setEnabled(false);
@@ -108,7 +108,7 @@ public class AbriVue extends JFrame implements Observer
 			}
 		});
 
-		receptionPanel.setBorder(javax.swing.BorderFactory.createTitledBorder(null, "R�ception", javax.swing.border.TitledBorder.CENTER, javax.swing.border.TitledBorder.DEFAULT_POSITION));
+		receptionPanel.setBorder(javax.swing.BorderFactory.createTitledBorder(null, "Reception", javax.swing.border.TitledBorder.CENTER, javax.swing.border.TitledBorder.DEFAULT_POSITION));
 
 		receptionTextPane.setContentType("text/html"); // NOI18N
 		receptionTextPane.setDocument(new HTMLDocument());
@@ -119,9 +119,9 @@ public class AbriVue extends JFrame implements Observer
 		receptionPanelLayout.setHorizontalGroup(receptionPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING).addComponent(receptionScrollPane, javax.swing.GroupLayout.Alignment.TRAILING));
 		receptionPanelLayout.setVerticalGroup(receptionPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING).addComponent(receptionScrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, 158, Short.MAX_VALUE));
 
-		emissionPanel.setBorder(javax.swing.BorderFactory.createTitledBorder(null, "�mission", javax.swing.border.TitledBorder.CENTER, javax.swing.border.TitledBorder.DEFAULT_POSITION));
+		emissionPanel.setBorder(javax.swing.BorderFactory.createTitledBorder(null, "Emission", javax.swing.border.TitledBorder.CENTER, javax.swing.border.TitledBorder.DEFAULT_POSITION));
 
-		emettreBouton.setText("�mettre une fois");
+		emettreBouton.setText("Emettre une fois");
 		emettreBouton.addActionListener(new java.awt.event.ActionListener() {
 			@Override
 			public void actionPerformed(final java.awt.event.ActionEvent evt)
@@ -146,7 +146,7 @@ public class AbriVue extends JFrame implements Observer
 		destinataireList.setEnabled(false);
 		listeScrollPane.setViewportView(destinataireList);
 
-		demarrerToggleBouton.setText("D�marrer l'�mission");
+		demarrerToggleBouton.setText("Demarrer l'emission");
 		demarrerToggleBouton.addActionListener(new java.awt.event.ActionListener() {
 			@Override
 			public void actionPerformed(final java.awt.event.ActionEvent evt)
@@ -155,7 +155,7 @@ public class AbriVue extends JFrame implements Observer
 			}
 		});
 
-		stopperBouton.setText("Stopper l'�mission");
+		stopperBouton.setText("Stopper l'emission");
 		stopperBouton.addActionListener(new java.awt.event.ActionListener() {
 			@Override
 			public void actionPerformed(final java.awt.event.ActionEvent evt)
@@ -184,9 +184,9 @@ public class AbriVue extends JFrame implements Observer
 		statutPanel.setBorder(javax.swing.BorderFactory.createTitledBorder(null, "Statut", javax.swing.border.TitledBorder.CENTER, javax.swing.border.TitledBorder.DEFAULT_POSITION));
 
 		etatLabel.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-		etatLabel.setText("Non connect�");
+		etatLabel.setText("Non connecte");
 
-		connectionBouton.setText("Connecter l'abri au r�seau");
+		connectionBouton.setText("Connecter l'abri au reseau");
 		connectionBouton.addActionListener(new java.awt.event.ActionListener() {
 			@Override
 			public void actionPerformed(final java.awt.event.ActionEvent evt)
@@ -248,7 +248,7 @@ public class AbriVue extends JFrame implements Observer
 		                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED).addComponent(receptionPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
 		                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED).addComponent(emissionPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)));
 
-		receptionPanel.getAccessibleContext().setAccessibleName("Messages re�us");
+		receptionPanel.getAccessibleContext().setAccessibleName("Messages recus");
 
 		pack();
 	}// </editor-fold>//GEN-END:initComponents
@@ -302,8 +302,8 @@ public class AbriVue extends JFrame implements Observer
 		if ( backend.estConnecte() ) {
 			try {
 				backend.deconnecterAbri();
-				etatLabel.setText("<html><a color=red>D�connect�</a></html>");
-				connectionBouton.setText("Connecter l'abri au r�seau");
+				etatLabel.setText("<html><a color=red>Deconnecte</a></html>");
+				connectionBouton.setText("Connecter l'abri au reseau");
 				if ( emettreEnBoucle ) {
 					emettreEnBoucle = false;
 					afficherErreur("Arret de l'emission", "L'envoi en boucle d'un message a ete interrompu en raison d'une deconnexion.");
@@ -311,18 +311,18 @@ public class AbriVue extends JFrame implements Observer
 				ajusterEtatBoutons();
 			} catch ( Exception ex ) {
 				ex.printStackTrace();
-				afficherErreur("Erreur de d�connexion", ex.getMessage());
+				afficherErreur("Erreur de deconnexion", ex.getMessage());
 			}
 		} else {
 			try {
 				backend.attribuerGroupe((String) groupsList.getSelectedValue());
 				backend.connecterAbri();
-				etatLabel.setText("<html><a color=green>Connect�</a></html>");
-				connectionBouton.setText("D�connecter l'abri du r�seau");
+				etatLabel.setText("<html><a color=green>Connecte</a></html>");
+				connectionBouton.setText("Deconnecter l'abri du reseau");
 				ajusterEtatBoutons();
 			} catch ( Exception ex ) {
 				ex.printStackTrace();
-				afficherErreur("Erreur de d�connexion", ex.getMessage());
+				afficherErreur("Erreur de deconnexion", ex.getMessage());
 			}
 		}
 	}//GEN-LAST:event_connectionBoutonActionPerformed
@@ -460,7 +460,6 @@ public class AbriVue extends JFrame implements Observer
 			while ( emettreEnBoucle ) {
 				try {
 					backend.emettreMessageDanger(emissionTextArea.getText());
-					Thread.sleep(100); //@@@ Maelig essaie de temper à virer FIXME TODO
 				} catch ( Exception ex ) {
 					ex.printStackTrace();
 					new ErrorDialog(parent, "Erreur lors de l'emission du message", ex.getMessage());

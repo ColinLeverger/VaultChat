@@ -32,8 +32,6 @@ public interface AbriLocalInterface
 
 	public void emettreMessageDanger(String message) throws InterruptedException, RemoteException, AbriException, NoeudCentralException;
 
-	//public void supprimerAbri(String url);
-
 	public void attribuerGroupe(String groupe);
 
 }

@@ -47,7 +47,7 @@ public class Abri extends Observable {
         connecte = false;
     }
     
-    public void ajouterMessage(Message message) {
+    public void memoriserMessageRecu(Message message) {
         tampon.add(message);
         notifierObservateurs();
     }
