@@ -1,5 +1,18 @@
 package modele;
 
+/**
+ *
+ * Type énuméré permettant de décrire les différents types de messages échangés
+ * sur le système. Cette classe ne prends pas en compte les messages liés à la
+ * demande et à la sortie de section critique. Nous avons commencé à essayer de
+ * gérer des priorités sur les messages, mais nous n'avons pas eu le temps
+ * d'aboutir cette réalisation. Il faudrait que les messages de connection ou de
+ * deconnection soit plus prioritaire que les messages de signalement de danger
+ * par exemple.
+ *
+ * @author Maelig Nantel
+ * @author Colin Leverger
+ */
 public enum MessageType
 {
 	SIGNALEMENT_DANGER(6),
@@ -22,6 +35,6 @@ public enum MessageType
 
 	public int getPriorite()
 	{
-		return priorite;
+		return this.priorite;
 	}
 }

@@ -15,6 +15,8 @@ import java.util.List;
  *
  * @author Gwenole Lecorve
  * @author David Guennec
+ * @author Maelig Nantel
+ * @author Colin Leverger
  */
 public class Message implements Serializable
 {
@@ -25,6 +27,11 @@ public class Message implements Serializable
 	protected String timestamp;
 	protected final MessageType type;
 
+	public Message(final String _urlEmetteur, final List<String> _urlDestinataire, final MessageType type)
+	{
+		this(_urlEmetteur, _urlDestinataire, null, type);
+	}
+
 	public Message(final String _urlEmetteur, final List<String> _urlDestinataire, final String _contenu, final MessageType type)
 	{
 		this.urlEmetteur = _urlEmetteur;
@@ -34,15 +41,10 @@ public class Message implements Serializable
 		this.contenu = _contenu;
 	}
 
-	public Message(final String _urlEmetteur, final List<String> _urlDestinataire, final MessageType type)
-	{
-		this(_urlEmetteur, _urlDestinataire, null, type);
-	}
-
 	/**
 	 * Constructeur permettant d'envoyer un message à un seul destinataire, sans
 	 * contenu.
-	 * 
+	 *
 	 * @param _urlEmetteur
 	 * @param _urlDestinataire
 	 * @param type
@@ -56,7 +58,7 @@ public class Message implements Serializable
 	/**
 	 * Constructeur permettant d'envoyer un message à un seul destinataire, avec
 	 * contenu.
-	 * 
+	 *
 	 * @param _urlEmetteur
 	 * @param _urlDestinataire
 	 * @param contenu
@@ -67,11 +69,6 @@ public class Message implements Serializable
 		this(_urlEmetteur, Arrays.asList(_urlDestinataire), contenu, type);
 	}
 
-	public MessageType getType()
-	{
-		return this.type;
-	}
-
 	public String getContenu()
 	{
 		return this.contenu;
@@ -80,6 +77,11 @@ public class Message implements Serializable
 	public String getTimestamp()
 	{
 		return this.timestamp;
+	}
+
+	public MessageType getType()
+	{
+		return this.type;
 	}
 
 	public List<String> getUrlDestinataire()

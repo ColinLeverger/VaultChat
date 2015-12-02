@@ -5,7 +5,6 @@
  */
 package modele;
 
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Observable;
@@ -15,54 +14,65 @@ import java.util.Observable;
  * @author Gwenole Lecorve
  * @author David Guennec
  */
-public class Abri extends Observable {
-    
-    protected boolean connecte;
-    protected List<Message> tampon;
-    protected String groupe;
-    
-    public Abri() {
-        connecte = false;
-        tampon = new LinkedList();
-        groupe = "";
-    }
+public class Abri extends Observable
+{
 
-    public boolean estConnecte() {
-        return connecte;
-    }
-    
-    public void connecter() {
-        connecte = true;
-    }
-    
-    public String donnerGroupe() {
-        return groupe;
-    }
-    
-    public void definirGroupe(String groupe) {
-        this.groupe = groupe;
-    }
-    
-    public void deconnecter() {
-        connecte = false;
-    }
-    
-    public void memoriserMessageRecu(Message message) {
-        tampon.add(message);
-        notifierObservateurs();
-    }
-    
-    public void viderTampon() {
-        tampon.clear();
-    }
-    
-    public List<Message> lireTampon() {
-        return tampon;
-    }
-    
-    protected void notifierObservateurs() {
-        super.setChanged();
-        notifyObservers();
-    }
-    
+	protected boolean connecte;
+	protected List<Message> tampon;
+	protected String groupe;
+
+	public Abri()
+	{
+		this.connecte = false;
+		this.tampon = new LinkedList();
+		this.groupe = "";
+	}
+
+	public void connecter()
+	{
+		this.connecte = true;
+	}
+
+	public void deconnecter()
+	{
+		this.connecte = false;
+	}
+
+	public void definirGroupe(String groupe)
+	{
+		this.groupe = groupe;
+	}
+
+	public String donnerGroupe()
+	{
+		return this.groupe;
+	}
+
+	public boolean estConnecte()
+	{
+		return this.connecte;
+	}
+
+	public List<Message> lireTampon()
+	{
+		return this.tampon;
+	}
+
+	public void memoriserMessageRecu(Message message)
+	{
+		this.tampon.add(message);
+		notifierObservateurs();
+	}
+
+	protected void notifierObservateurs()
+	{
+		super.setChanged();
+		notifyObservers();
+	}
+
+	public void viderTampon()
+	{
+		this.tampon.clear();
+	}
+
 }

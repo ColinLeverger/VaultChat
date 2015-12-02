@@ -7,17 +7,26 @@ package modele;
 
 /**
  * Classe pour les exceptions emanant du noeud central
+ * 
  * @author Gwenole Lecorve
  * @author David Guennec
  */
-public class NoeudCentralException extends Exception {
+public class NoeudCentralException extends Exception
+{
 
-    public NoeudCentralException() {
-        super();
-    }
-    
-    public NoeudCentralException(String message) {
-        super(message);
-    }
-    
+	/**
+	 *
+	 */
+	private static final long serialVersionUID = -876051397080268715L;
+
+	public NoeudCentralException()
+	{
+		super();
+	}
+
+	public NoeudCentralException(String message)
+	{
+		super(message);
+	}
+
 }

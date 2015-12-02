@@ -10,14 +10,22 @@ package modele;
  * @author Gwenole Lecorve
  * @author David Guennec
  */
-public class AbriException extends Exception {
+public class AbriException extends Exception
+{
 
-    public AbriException() {
-        super();
-    }
-    
-    public AbriException(String message) {
-        super(message);
-    }
-    
+	/**
+	 *
+	 */
+	private static final long serialVersionUID = 1848523127701802886L;
+
+	public AbriException()
+	{
+		super();
+	}
+
+	public AbriException(String message)
+	{
+		super(message);
+	}
+
 }

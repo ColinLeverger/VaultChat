@@ -16,21 +16,26 @@ import modele.Message;
 import modele.NoeudCentralException;
 
 /**
+ * Classe modélisant les appels pouvant être éffectués sur le noeud central
+ * depuis un abri du réseau via Java RMI.
+ *
  * @author Gwenole Lecorve
  * @author David Guennec
+ * @author Maelig Nantel
+ * @author Colin Leverger
  */
 public interface NoeudCentralRemoteInterface extends Remote
 {
+	void connexionAbri(String urlNouveau, String groupeNouveau) throws RemoteException, NotBoundException, MalformedURLException, AbriException, NoeudCentralException, IllegalAccessException;
+
+	void deconnecterAbri(String urlAbriDeconnecte) throws RemoteException, AbriException, NoeudCentralException, IllegalAccessException;
+
+	void demanderSectionCritique(String urlAbriDemandeur) throws RemoteException, AbriException, NoeudCentralException, IllegalAccessException;
+
 	void modifierAiguillage(String depuisUrl, List<String> versListeUrl) throws RemoteException, NoeudCentralException;
 
-	void transmettreMessage(Message message) throws RemoteException, AbriException, NoeudCentralException;
+	void quitterSectionCritique(String urlAbriDemandeur) throws RemoteException, AbriException, NoeudCentralException, IllegalAccessException;
 
-	void connexionAbri(String urlAbri, String groupeAbri) throws RemoteException, NotBoundException, MalformedURLException, AbriException, NoeudCentralException;
-
-	void demanderSectionCritique(String url) throws RemoteException, AbriException, NoeudCentralException;
-
-	void quitterSectionCritique(String url) throws RemoteException, AbriException, NoeudCentralException;
-
-	void deconnecterAbri(String url) throws RemoteException, AbriException, NoeudCentralException;
+	void transmettreMessage(Message message) throws RemoteException, AbriException, NoeudCentralException, IllegalAccessException;
 
 }

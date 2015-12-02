@@ -19,7 +19,7 @@ import modele.NoeudCentralException;
  * @author David Guennec
  * @author Maelig Nantel
  * @author Colin Leverger
- * 
+ *
  *         Classe permettant de communiquer de manière locale avec notre abri.
  *         Utilisée pour la gestion des vues et donc non liée à RMI. La vue gère
  *         les intéractions avec l'utilisateur. <br>
@@ -28,18 +28,18 @@ import modele.NoeudCentralException;
  */
 public interface AbriLocalInterface
 {
-	public String getUrl();
+	public void attribuerGroupe(String groupe);
+
+	public void connecterAbri() throws AbriException, RemoteException, MalformedURLException, NotBoundException, NoeudCentralException, IllegalAccessException;
+
+	public void demanderDeconexion() throws AbriException, RemoteException, MalformedURLException, NotBoundException, NoeudCentralException, IllegalAccessException;
+
+	public void emettreMessageDanger(String message) throws InterruptedException, RemoteException, AbriException, NoeudCentralException, IllegalAccessException;
 
 	public boolean estConnecte();
 
 	public AnnuaireAbri getAnnuaire();
 
-	public void connecterAbri() throws AbriException, RemoteException, MalformedURLException, NotBoundException, NoeudCentralException;
-
-	public void demanderDeconexion() throws AbriException, RemoteException, MalformedURLException, NotBoundException, NoeudCentralException;
-
-	public void emettreMessageDanger(String message) throws InterruptedException, RemoteException, AbriException, NoeudCentralException;
-
-	public void attribuerGroupe(String groupe);
+	public String getUrl();
 
 }

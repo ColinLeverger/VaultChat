@@ -6,26 +6,30 @@
 package modele;
 
 /**
- * Classe contenant les archétypes des adresses RMI
- * @author Gwénolé Lecorvé
+ * Classe contenant les archï¿½types des adresses RMI
+ * 
+ * @author Gwï¿½nolï¿½ Lecorvï¿½
  * @author David Guennec
  */
-public class Adresses {
-    
-    private static final String noeud = "localhost"; // localhost // Par défaut, le simulateur lance tous les sites sur la boucle locale
-    private static final String abri = "localhost"; // localhost
-    private static final int port = 2020;
-    
-    Adresses(){}
-    
-    public static String archetypeAdresseNoeudCentral()
-    {
-        return ("rmi://"+Adresses.noeud+":"+Adresses.port+"/");        
-    }
+public class Adresses
+{
 
-    public static String archetypeAdresseAbri()
-    {
-        return ("rmi://"+Adresses.abri+":"+Adresses.port+"/");        
-    }
-    
+	private static final String noeud = "localhost"; // localhost // Par dï¿½faut, le simulateur lance tous les sites sur la boucle locale
+	private static final String abri = "localhost"; // localhost
+	private static final int port = 2020;
+
+	public static String archetypeAdresseAbri()
+	{
+		return "rmi://" + Adresses.abri + ":" + Adresses.port + "/";
+	}
+
+	public static String archetypeAdresseNoeudCentral()
+	{
+		return "rmi://" + Adresses.noeud + ":" + Adresses.port + "/";
+	}
+
+	Adresses()
+	{
+	}
+
 }

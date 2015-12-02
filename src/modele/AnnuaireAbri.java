@@ -10,8 +10,15 @@ import java.util.Map;
 import java.util.Observable;
 
 /**
+ * Classse permettant de modéliser un annuaire dans un abri. On ne doit pas
+ * mémoriser d'accès aux autres AbriRemoteInterface comme c'était précédement le
+ * cas, car nous voulons fonctionner en totalement centralisé. Nous avons
+ * cependant besoin de mémoriser le groupe de chaque abri.
+ *
  * @author Gwenole Lecorve
  * @author David Guennec
+ * @author Maelig Nantel
+ * @author Colin Leverger
  */
 public class AnnuaireAbri extends Observable
 {
@@ -25,7 +32,7 @@ public class AnnuaireAbri extends Observable
 
 	public void ajouterAbriDistant(final String url, final String groupe)
 	{
-		if ( !abrisDistants.containsKey(url) ) { // Association 1-1
+		if ( !this.abrisDistants.containsKey(url) ) { // Association 1-1
 			this.abrisDistants.put(url, groupe);
 			notifierObservateurs();
 		}
@@ -33,7 +40,7 @@ public class AnnuaireAbri extends Observable
 
 	public Map<String, String> getAbrisDistants()
 	{
-		synchronized ( abrisDistants ) {
+		synchronized ( this.abrisDistants ) {
 			return this.abrisDistants;
 		}
 	}
@@ -44,7 +51,6 @@ public class AnnuaireAbri extends Observable
 		notifyObservers();
 	}
 
-	//TODO jamais mise à jour...
 	public void retirerAbriDistant(final String url)
 	{
 		this.abrisDistants.remove(url);

@@ -16,139 +16,217 @@ import modele.NoeudCentral;
 import modele.NoeudCentralException;
 
 /**
+ * Classe permettant de gérer un noeud central dans un réseau totalement
+ * centralisé. Il a deux objectifs: <br>
+ * - Gérer l'accès à la section critique, c'est à dire qu'un seul noeud à la
+ * fois peut avoir un plein accès au noeud central <br>
+ * - Faire le "passe-plat" pour transmettre des messages entre différents abris.
+ * Le noeud central connais l'enssemble des abris connectés au réseau mais n'a
+ * pas d'informations concernant les groupe de dangers.
  *
  * @author Gwenole Lecorve
  * @author David Guennec
+ * @author Maelig Nantel
+ * @author Colin Leverger
  */
 public class NoeudCentralBackend extends UnicastRemoteObject implements NoeudCentralRemoteInterface
 {
 	private static final long serialVersionUID = -5192481389891341422L;
 
-	protected String urlNoeud;
-	protected NoeudCentral noeudCentral;
-	protected SectionCritiqueNoeudControleur sectionCritiqueControleur; // Controleur gérant la section critique. Mettre l'algorithme d'exclusion mutuelle ici.
-	protected AnnuaireNoeudCentral abris; // Le noeud connait tous les abris du réseau.
+	private final String noeudURL;
+	private NoeudCentral noeudCentralModele;
+
+	/**
+	 * Controleur unique dont l'objectif sera de gérer l'accès à la section
+	 * critique. C'est ce contrôleur qui contiendra notre algorithme d'exclusion
+	 * mutuelle, il suffit de modifier cette classe si on veut changer
+	 * d'algorithme.
+	 */
+	private final SectionCritiqueControleurFIFO sectionCritiqueControleur; // Controleur gérant la section critique. Mettre l'algorithme d'exclusion mutuelle ici.
+
+	/**
+	 * Annuaire associat pour chaque adresse URL une instance
+	 * d'AbriRemoteInterface afin de pouvoir communiquer avec les abris. Tous
+	 * les abris connectés au réseau doivent se trouver dans cet annuaire.
+	 */
+	private AnnuaireNoeudCentral abris;
+
+	// ===========
+	// CONSTRUCTOR
+	// ===========
 
 	public NoeudCentralBackend(final String url) throws RemoteException, MalformedURLException
 	{
-		this.urlNoeud = url;
-		noeudCentral = new NoeudCentral();
-		sectionCritiqueControleur = new SectionCritiqueNoeudControleur(this.urlNoeud);
-		abris = new AnnuaireNoeudCentral();
-		Naming.rebind(this.urlNoeud, this);
+		this.noeudURL = url;
+		this.noeudCentralModele = new NoeudCentral();
+		this.sectionCritiqueControleur = new SectionCritiqueControleurFIFO(this.noeudURL);
+		this.abris = new AnnuaireNoeudCentral();
+		Naming.rebind(this.noeudURL, this); // Publication dans l'annuaire RMI
+	}
+
+	// =================
+	// GETTERS / SETTERS
+	// =================
+
+	/**
+	 * Le noeud central recoit un message de la part d'un nouvel abri signalant
+	 * qu'il viens de rejoindre le réseau. Il doit l'ajouter à son annuaire puis
+	 * signaler l'éxistance du nouveau à tous les autres abris du réseau.
+	 */
+	@Override
+	public void connexionAbri(final String urlNouveau, final String groupeNouveau) throws RemoteException, NotBoundException, MalformedURLException, AbriException, NoeudCentralException, IllegalAccessException
+	{
+		System.out.println("JE SUIS LE NOEUD, ABRI " + urlNouveau + " VIENS DE S'AJOUTER, JE DOIS PREVENIR " + this.abris.getAbrisDistants().size() + " AUTRES ABRIS.");
+		// Il faut récupérer la remote interface de ce nouvel abris dans l'annuaire RMI
+		AbriRemoteInterface remoteNouvelAbri = (AbriRemoteInterface) Naming.lookup(urlNouveau);
+		this.abris.ajouterAbriDistant(urlNouveau, remoteNouvelAbri);
+
+		// On envoie un broadcast à tout les abris éxistants pour signaler la présence du nouveau.
+		for ( Entry<String, AbriRemoteInterface> autreAbri : this.abris.getAbrisDistants().entrySet() ) {
+			if ( !autreAbri.getKey().equals(urlNouveau) ) { // On n'envoi rien à celui qui viens de se créer
+				System.out.println(autreAbri.getKey() + " RECOIS " + urlNouveau);
+				autreAbri.getValue().recevoirMessage(new Message(urlNouveau, autreAbri.getKey(), groupeNouveau, MessageType.SIGNALEMENT_CONNECTION));
+			}
+		}
+	}
+
+	/**
+	 * Le noeud central est informé qu'un abri se déconnecte du réseau.Il doit
+	 * alors prévenir l'enssemble des autres abris pour qu'ils puissent
+	 * maintenir leur conaissance du réseau à jour, puis mettre à son tour à
+	 * jour son annuaire.
+	 */
+	@Override
+	public void deconnecterAbri(final String urlAbriDeconecte) throws AbriException, NoeudCentralException, RemoteException, IllegalAccessException
+	{
+		// Faire un broadcast pour prévenir les autres qu'il y a un abri en moins
+		for ( Entry<String, AbriRemoteInterface> autreAbri : this.abris.getAbrisDistants().entrySet() ) {
+			if ( !autreAbri.getKey().equals(urlAbriDeconecte) ) {
+				autreAbri.getValue().recevoirMessage(new Message(urlAbriDeconecte, autreAbri.getKey(), MessageType.SIGNALEMENT_DECONNECTION));
+			}
+		}
+		// Mettre à jour son annuaire
+		this.abris.retirerAbriDistant(urlAbriDeconecte);
+	}
+
+	// ====================
+	// GESTION DES MESSAGES
+	// ====================
+
+	/**
+	 * Méthode éxécutée lorsque le noeud central recoit une demande d'un abri
+	 * pour entrer en section critique. On doit: <br>
+	 * Déléguer la gestion au contrôleur qui nous répondra si l'abris peut
+	 * immédiatement ou non entrer en SC. Si c'est le cas, on doit informer
+	 * l'abris.
+	 */
+	@Override
+	public synchronized void demanderSectionCritique(final String urlAbriDemandeur) throws RemoteException, AbriException, NoeudCentralException, IllegalAccessException
+	{
+		System.out.println("JE SUIS " + urlAbriDemandeur + " ET JE VIENS D'ARRIVER AU NOEUD POUR UNE DEMANDE DE SC");
+		boolean available = this.sectionCritiqueControleur.demanderSectionCritique(urlAbriDemandeur);
+		if ( available ) { // SC dispo immédiatement
+			this.sectionCritiqueControleur.setUrlEnSC(urlAbriDemandeur);
+			this.abris.chercherUrl(urlAbriDemandeur).recevoirMessage(new Message(this.noeudURL, urlAbriDemandeur, MessageType.SIGNALEMENT_AUTORISATION_SC));
+		}
 	}
 
 	@Override
 	public void finalize() throws RemoteException, NotBoundException, MalformedURLException, Throwable
 	{
 		try {
-			Naming.unbind(urlNoeud);
+			Naming.unbind(this.noeudURL);
 		} finally {
 			super.finalize();
 		}
 	}
 
-	@Override
-	public void deconnecterAbri(final String url) throws AbriException, NoeudCentralException, RemoteException
+	// =================================
+	// CONNECTION ET DECONECTION D'ABRIS
+	// =================================
+
+	public AnnuaireNoeudCentral getAnnuaire()
 	{
-		// Faire un broadcast pour prévenir les autres qu'il y a un abri en moins
-		for ( Entry<String, AbriRemoteInterface> autreAbri : abris.getAbrisDistants().entrySet() ) {
-			if ( !autreAbri.getKey().equals(url) ) {
-				// FIXME
-				autreAbri.getValue().recevoirMessage(new Message(url, autreAbri.getKey(), MessageType.SIGNALEMENT_DECONNECTION));
-				//	autreAbri.getValue().supprimerAbri(autreAbri.getKey());
-			}
-		}
-		// Mettre à jour son annuaire
-		abris.retirerAbriDistant(url);
+		return this.abris;
 	}
 
 	public NoeudCentral getNoeudCentral()
 	{
-		return noeudCentral;
+		return this.noeudCentralModele;
 	}
 
-	public AnnuaireNoeudCentral getAnnuaire()
-	{
-		return abris;
-	}
+	// ================
+	// SECTION CRITIQUE
+	// ================
+	/**
+	 * La logique de getion de la SC est proposée dans
+	 * SectionCritiqueControleur. Cependant, les demandes des abris arrivent
+	 * dans la classe NoeudCentralBackend qui doit se charger de faire le relai
+	 * vers le controleur. Il doit également se charger d'informer l'abri qui
+	 * dispose d'un accès à la section critique.
+	 */
 
+	/**
+	 * Méthode permettant de définir l'emetteur et le(s) destinataires d'un
+	 * message avant envoi. Doit être appelé au bon moment pour éviter qu'un
+	 * message n'arrive à un mauvais destinataire ! L'emeteur est forcément
+	 * unique alors que les destinataires peuvent être nombreux.
+	 */
 	@Override
 	public void modifierAiguillage(final String depuisUrl, final List<String> versUrl) throws RemoteException, NoeudCentralException
 	{
-		System.out.println("JE SUIS LE NOEUD CENTRAL, JE ME RECONFIGURE DEPUIS " + depuisUrl + " VERS " + versUrl);
-		noeudCentral.reconfigurerAiguillage(depuisUrl, versUrl);
+		System.out.println("JE SUIS LE NOEUD CENTRAL, JE ME RECONFIGURE POUR ENVOYER DEPUIS " + depuisUrl + " VERS " + versUrl);
+		this.noeudCentralModele.reconfigurerAiguillage(depuisUrl, versUrl);
 	}
 
+	/**
+	 * Méthode éxétuée lorsque le noeud central recoit une demande d'un abri
+	 * pour quitter la section critique. On doit: <br>
+	 * - Déléguer la gestion au controleur qui nous informera si un autre abri
+	 * était en attente de la section critiquie l'obtient à son tour. Si c'est
+	 * le cas, nous devons prévenir cet abri.
+	 */
 	@Override
-	// On doit avoir la section critique quand on est dans cette méthode. On ne doit pas quitter la SC dans cette méthode.
-	public void transmettreMessage(final Message message) throws RemoteException, AbriException, NoeudCentralException
+	public void quitterSectionCritique(final String urlAbriDemandeur) throws RemoteException, AbriException, NoeudCentralException, IllegalAccessException
+	{
+		System.out.println("JE SUIS " + urlAbriDemandeur + " ET JE VIENS D'ARRIVER AU NOEUD POUR QUITTER LA SC");
+		String prochain = this.sectionCritiqueControleur.quitterSectionCritique(urlAbriDemandeur);
+
+		if ( prochain != null ) {
+			System.out.println("JE SUIS LE NOEUD, UN ABRI A QUITTE LA SC ET JE LA DONNE MAINTENANT A " + prochain);
+			this.sectionCritiqueControleur.setUrlEnSC(prochain);
+			this.abris.chercherUrl(prochain).recevoirMessage(new Message(this.noeudURL, prochain, MessageType.SIGNALEMENT_AUTORISATION_SC));
+		} else {
+			System.out.println("JE SUIS LE NOEUD, UN ABRI A QUITTE LA SC ET PERSONNE EN ATTENTE");
+		}
+	}
+
+	// ===========
+	// UTILITAIRES
+	// ===========
+
+	/**
+	 * Effectue le passe plat pour la transmission d'un message. L'aiguillage
+	 * est tout d'abord modifié directement dans le noed à partir des
+	 * informations présente dans le corps du message à transmettre (nous avons
+	 * choisis de placer l'appel ici et donc de ne pas demander à l'abri de
+	 * faire la demande de modification d'aiguillage). L'envoi d'un message
+	 * consiste en fait à appeler la méthode "recevoirMessage" d'un abri via
+	 * l'instance d'AbriRemoteInterface. C'est le principe fondamentale de Java
+	 * RMI.
+	 */
+	@Override
+	public void transmettreMessage(final Message message) throws RemoteException, AbriException, NoeudCentralException, IllegalAccessException
 	{
 		modifierAiguillage(message.getUrlEmetteur(), message.getUrlDestinataire());
 		try {
-			noeudCentral.demarrerTransmission();
-			// Tous les destinataires recoivent
-			for ( String abri : noeudCentral.getVersUrl() ) {
-				abris.chercherUrl(abri).recevoirMessage(message);
+			this.noeudCentralModele.demarrerTransmission();
+			for ( String abri : this.noeudCentralModele.getVersUrl() ) {
+				this.abris.chercherUrl(abri).recevoirMessage(message);
 				System.out.println("ABRI '" + abri + "' VIENS DE RECEVOIR LE MESSAGE '" + message + "'");
 			}
-		} finally {
-			noeudCentral.stopperTransmission();
-		}
-	}
-
-	@Override
-	// le noeud central recoit un message signalant qu'un nouvel abri a rejoint le réseau
-	public void connexionAbri(final String urlAbriDistant, final String groupeAbri) throws RemoteException, NotBoundException, MalformedURLException, AbriException, NoeudCentralException
-	{
-		System.out.println("JE SUIS LE NOEUD, ABRI " + urlAbriDistant + " VIENS DE S'AJOUTER, JE DOIS PREVENIR " + abris.getAbrisDistants().size() + " AUTRES ABRIS.");
-		// On mémorise dans l'annuaire du noeud central
-		AbriRemoteInterface abriDistant = (AbriRemoteInterface) Naming.lookup(urlAbriDistant);
-		abris.ajouterAbriDistant(urlAbriDistant, abriDistant);
-
-		// On envoie un broadcast à tout les abris éxistants pour signaler la présence du nouveau.
-		for ( Entry<String, AbriRemoteInterface> autreAbri : abris.getAbrisDistants().entrySet() ) {
-			if ( !autreAbri.getKey().equals(urlAbriDistant) ) {
-				System.out.println(autreAbri.getKey() + " RECOIS " + urlAbriDistant);
-				//autreAbri.getValue().enregistrerAbri(urlAbriDistant, groupeAbri);
-				autreAbri.getValue().recevoirMessage(new Message(urlAbriDistant, autreAbri.getKey(), groupeAbri, MessageType.SIGNALEMENT_CONNECTION));
-			}
-		}
-	}
-
-	@Override
-	public synchronized void demanderSectionCritique(final String url) throws RemoteException, AbriException, NoeudCentralException
-	{
-		System.out.println("JE SUIS " + url + " ET JE VIENS D'ARRIVER AU NOEUD POUR UNE DEMANDE DE SC");
-		boolean available = sectionCritiqueControleur.demanderSectionCritique(url);
-		if ( available ) { // SC dispo immédiatement
-			sectionCritiqueControleur.setUrlEnSC(url);
-			//abris.chercherUrl(url).recevoirSC();
-			abris.chercherUrl(url).recevoirMessage(new Message(this.urlNoeud, url, MessageType.SIGNALEMENT_AUTORISATION_SC));
-		}
-	}
-
-	@Override
-	public void quitterSectionCritique(final String url) throws RemoteException, AbriException, NoeudCentralException
-	{
-		System.out.println("JE SUIS " + url + " ET JE VIENS D'ARRIVER AU NOEUD POUR QUITTER LA SC");
-		// On enregistre le fait que l'abris actuel libère la SC
-		String prochain = null;
-		try {
-			prochain = sectionCritiqueControleur.quitterSectionCritique(url);
-		} catch ( IllegalAccessException e ) {
-			e.printStackTrace();
-			System.exit(-1); // FIXME
-		}
-
-		// Un abri était en attente pour avoir la SC, on la lui donne
-		if ( prochain != null ) {
-			System.out.println("JE SUIS LE NOEUD, UN ABRI A QUITTE LA SC ET JE LA DONNE MAINTENANT A " + prochain);
-			sectionCritiqueControleur.setUrlEnSC(prochain);
-			//	abris.chercherUrl(prochain).recevoirSC();
-			abris.chercherUrl(prochain).recevoirMessage(new Message(urlNoeud, prochain, MessageType.SIGNALEMENT_AUTORISATION_SC));
-		} else {
-			System.out.println("JE SUIS LE NOEUD, UN ABRI A QUITTE LA SC ET PERSONNE EN ATTENTE");
+		} finally { // Assure que le noeud central ne se considèrera plus comme en train d'emmetre en cas de problème (évite donc un blocage du système).
+			this.noeudCentralModele.stopperTransmission();
 		}
 	}
 
