@@ -164,7 +164,7 @@ public class AbriBackend extends UnicastRemoteObject implements AbriLocalInterfa
 		ArrayList<String> destinataires = new ArrayList<>();
 		destinataires.add(urlDistant);
 		String contenu = notreURL + "|" + abri.donnerGroupe(); // Le destinataire devra split sur "|" pour récupérer les deux infos
-		ajouterMesageTampon(new Message(noeudURL, destinataires, contenu, MessageType.SIGNALEMENT_EXISTENCE));
+		ajouterMesageTampon(new Message(notreURL, destinataires, contenu, MessageType.SIGNALEMENT_EXISTENCE));
 	}
 
 	@Override
@@ -225,11 +225,12 @@ public class AbriBackend extends UnicastRemoteObject implements AbriLocalInterfa
 	{
 		System.out.println("Abris backend Recevoir SC --> url : " + notreURL + " viens de recevoir la SC");
 		// On transmet tout les messages en attentes...
-		//		for ( Message message : getMessagesEnAttente() ) { //FIXME cause une concurent modification exception
-		//			System.out.println("Envoie d'un message depuis " + message.getUrlEmetteur() + "vers " + message.getUrlDestinataire() + " avec pour contenu: " + message.getContenu());
-		//			noeudRemote.transmettreMessage(message);
-		//			getMessagesEnAttente().remove(message); // Il a été envoyé donc on le retire du tampon
-		//		}
+		for ( Message message : getMessagesEnAttente() ) {
+			System.out.println("Envoie d'un message depuis " + message.getUrlEmetteur() + "vers " + message.getUrlDestinataire() + " avec pour contenu: " + message.getContenu());
+			noeudRemote.transmettreMessage(message);
+		}
+		getMessagesEnAttente().clear(); // Tout a été envoyé, alors on vide le tampon
+
 		// ... puis on libère directement la section critique.
 		System.out.println("@@@ on a finis de faire ce qu'on veut en SC donc on la libère");
 		demandeSC.set(false); // On a reçu la SC donc on ne la demande plus immédiatement
