@@ -290,7 +290,7 @@ public class AbriVue extends JFrame implements Observer
 	private void formWindowClosing(final java.awt.event.WindowEvent evt)
 	{//GEN-FIRST:event_formWindowClosing
 		try {
-			backend.deconnecterAbri();
+			backend.demanderDeconexion();
 		} catch ( Exception ex ) {
 			ex.printStackTrace();
 			afficherErreur("Erreur lors de la fermeture", ex.getMessage());
@@ -301,7 +301,7 @@ public class AbriVue extends JFrame implements Observer
 	{//GEN-FIRST:event_connectionBoutonActionPerformed
 		if ( backend.estConnecte() ) {
 			try {
-				backend.deconnecterAbri();
+				backend.demanderDeconexion();
 				etatLabel.setText("<html><a color=red>Deconnecte</a></html>");
 				connectionBouton.setText("Connecter l'abri au reseau");
 				if ( emettreEnBoucle ) {

@@ -25,12 +25,12 @@ public interface NoeudCentralRemoteInterface extends Remote
 
 	void transmettreMessage(Message message) throws RemoteException, AbriException, NoeudCentralException;
 
-	void creerAbri(String urlAbri, String groupeAbri) throws RemoteException, NotBoundException, MalformedURLException;
+	void connexionAbri(String urlAbri, String groupeAbri) throws RemoteException, NotBoundException, MalformedURLException, AbriException, NoeudCentralException;
 
-	void demanderSectionCritique(String url) throws RemoteException;
+	void demanderSectionCritique(String url) throws RemoteException, AbriException, NoeudCentralException;
 
-	void quitterSectionCritique(String url) throws RemoteException;
+	void quitterSectionCritique(String url) throws RemoteException, AbriException, NoeudCentralException;
 
-	void deconnecterAbri(String url) throws RemoteException;
+	void deconnecterAbri(String url) throws RemoteException, AbriException, NoeudCentralException;
 
 }

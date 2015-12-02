@@ -26,9 +26,9 @@ public interface AbriLocalInterface
 
 	public AnnuaireAbri getAnnuaire();
 
-	public void connecterAbri() throws AbriException, RemoteException, MalformedURLException, NotBoundException;
+	public void connecterAbri() throws AbriException, RemoteException, MalformedURLException, NotBoundException, NoeudCentralException;
 
-	public void deconnecterAbri() throws AbriException, RemoteException, MalformedURLException, NotBoundException;
+	public void demanderDeconexion() throws AbriException, RemoteException, MalformedURLException, NotBoundException, NoeudCentralException;
 
 	public void emettreMessageDanger(String message) throws InterruptedException, RemoteException, AbriException, NoeudCentralException;
 

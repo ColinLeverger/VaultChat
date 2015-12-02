@@ -113,7 +113,7 @@ public class AbriBackend extends UnicastRemoteObject implements AbriLocalInterfa
 	//
 
 	@Override
-	public void connecterAbri() throws AbriException, RemoteException, MalformedURLException, NotBoundException
+	public void connecterAbri() throws AbriException, RemoteException, MalformedURLException, NotBoundException, NoeudCentralException
 	{
 		// Enregistrer dans l'annuaire RMI, notre AbriRemoteInterface sera disponible à partir de notreURL
 		Naming.rebind(notreURL, this);
@@ -133,12 +133,12 @@ public class AbriBackend extends UnicastRemoteObject implements AbriLocalInterfa
 			}
 		}
 		assert noeudRemote != null; // Il doit forcément éxister pour que notre système fonctionne.
-		noeudRemote.creerAbri(notreURL, nous.donnerGroupe()); // On indique qu'on se connecte, il va faire un broadcast aux autres.
+		noeudRemote.connexionAbri(notreURL, nous.donnerGroupe()); // On indique qu'on se connecte, il va faire un broadcast aux autres.
 		nous.connecter();
 	}
 
 	@Override
-	public void deconnecterAbri() throws AbriException, RemoteException, MalformedURLException, NotBoundException
+	public void demanderDeconexion() throws AbriException, RemoteException, MalformedURLException, NotBoundException, NoeudCentralException
 	{
 		noeudRemote.deconnecterAbri(notreURL);
 
@@ -153,9 +153,8 @@ public class AbriBackend extends UnicastRemoteObject implements AbriLocalInterfa
 		Naming.unbind(notreURL); // Retrait de l'annuaire RMI
 	}
 
-	@Override
 	// On recoit un message du noeud central signalant l'éxistence d'un nouvel abri dans le réseau
-	public void enregistrerAbri(final String urlDistant, final String groupe) throws RemoteException
+	private void enregistrerAbri(final String urlDistant, final String groupe) throws RemoteException, AbriException, NoeudCentralException
 	{
 		System.out.println("AJOUT DE " + urlDistant + " DANS LISTE ABRIS DISTANTS DE " + notreURL);
 		// On commence par le rajouter dans notre liste d'abris et de mettre à jour notre liste de copains...
@@ -169,8 +168,7 @@ public class AbriBackend extends UnicastRemoteObject implements AbriLocalInterfa
 		ajouterMesageTampon(new Message(notreURL, Arrays.asList(urlDistant), contenu, MessageType.SIGNALEMENT_EXISTENCE));
 	}
 
-	@Override
-	public void supprimerAbri(final String urlDistant)
+	private void supprimerAbri(final String urlDistant)
 	{
 		System.out.println("RETRAIT DE " + urlDistant + " DANS LISTE ABRIS DISTANTS DE " + notreURL);
 		abrisDistants.retirerAbriDistant(urlDistant);
@@ -192,9 +190,10 @@ public class AbriBackend extends UnicastRemoteObject implements AbriLocalInterfa
 	 * @param message
 	 * @throws RemoteException
 	 * @throws AbriException
+	 * @throws NoeudCentralException
 	 */
 	@Override
-	public void recevoirMessage(final modele.Message message) throws RemoteException, AbriException
+	public void recevoirMessage(final modele.Message message) throws RemoteException, AbriException, NoeudCentralException
 	{
 		if ( !message.getUrlDestinataire().contains(notreURL) ) {
 			throw new AbriException("Message recu par le mauvais destinataire (" + message.getUrlDestinataire().toString() + " != " + notreURL + ")");
@@ -213,6 +212,15 @@ public class AbriBackend extends UnicastRemoteObject implements AbriLocalInterfa
 					copains.add(url);
 				}
 				break;
+			case SIGNALEMENT_AUTORISATION_SC :
+				recevoirSC();
+				break;
+			case SIGNALEMENT_CONNECTION :
+				enregistrerAbri(message.getUrlEmetteur(), message.getContenu());
+				break;
+			case SIGNALEMENT_DECONNECTION :
+				supprimerAbri(message.getUrlEmetteur());
+				break;
 			default :
 				break;
 		}
@@ -222,8 +230,7 @@ public class AbriBackend extends UnicastRemoteObject implements AbriLocalInterfa
 	// SECTION CRITIQUE
 	//
 
-	@Override
-	public void recevoirSC() throws RemoteException, AbriException, NoeudCentralException
+	private void recevoirSC() throws RemoteException, AbriException, NoeudCentralException
 	{
 		System.out.println("ENTREE EN SC DE : " + notreURL);
 		// On transmet tout les messages en attentes...
@@ -243,7 +250,7 @@ public class AbriBackend extends UnicastRemoteObject implements AbriLocalInterfa
 	// UTILITAIRE
 	//
 
-	private void ajouterMesageTampon(final Message message) throws RemoteException
+	private void ajouterMesageTampon(final Message message) throws RemoteException, AbriException, NoeudCentralException
 	{
 		getMessagesEnAttente().add(message);
 		if ( !demandeSC ) { // Si on est pas déjà en attente pour avoir la SC, on la demande car on a un mesage qui veut être envoyé !
@@ -263,7 +270,7 @@ public class AbriBackend extends UnicastRemoteObject implements AbriLocalInterfa
 	public void finalize() throws Throwable
 	{
 		try {
-			deconnecterAbri();
+			demanderDeconexion();
 			Naming.unbind(notreURL); // Retrait de l'annuaire RMI
 		} finally {
 			super.finalize();
