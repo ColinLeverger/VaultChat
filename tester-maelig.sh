@@ -19,13 +19,13 @@ cd - > /dev/null
 sleep 0.2
 java -Djava.security.policy=./security.policy -Djava.rmi.server.codebase=file:${CLASS_PATH} -cp ${CLASS_PATH} NoeudCentralSimulateur rmi://localhost:2020/noeud-central &
 sleep 0.2
-java -Djava.security.policy=./security.policy -Djava.rmi.server.codebase=file:${CLASS_PATH} -cp ${CLASS_PATH} AbriSimulateur rmi://localhost:2020/abri31 &
-sleep 0.2
-java -Djava.security.policy=./security.policy -Djava.rmi.server.codebase=file:${CLASS_PATH} -cp ${CLASS_PATH} AbriSimulateur rmi://localhost:2020/abri57 &
-sleep 0.2
-java -Djava.security.policy=./security.policy -Djava.rmi.server.codebase=file:${CLASS_PATH} -cp ${CLASS_PATH} AbriSimulateur rmi://localhost:2020/abri58 &
-sleep 0.2
+#java -Djava.security.policy=./security.policy -Djava.rmi.server.codebase=file:${CLASS_PATH} -cp ${CLASS_PATH} AbriSimulateur rmi://localhost:2020/abri31 &
+#sleep 0.2
+#java -Djava.security.policy=./security.policy -Djava.rmi.server.codebase=file:${CLASS_PATH} -cp ${CLASS_PATH} AbriSimulateur rmi://localhost:2020/abri57 &
+#sleep 0.2
+#java -Djava.security.policy=./security.policy -Djava.rmi.server.codebase=file:${CLASS_PATH} -cp ${CLASS_PATH} AbriSimulateur rmi://localhost:2020/abri58 &
+#sleep 0.2
 java -Djava.security.policy=./security.policy -Djava.rmi.server.codebase=file:${CLASS_PATH} -cp ${CLASS_PATH} AbriSimulateur rmi://localhost:2020/abri71 &
 sleep 0.2
-java -Djava.security.policy=./security.policy -Djava.rmi.server.codebase=file:${CLASS_PATH} -cp ${CLASS_PATH} AbriSimulateur rmi://localhost:2020/abri108 
+#java -Djava.security.policy=./security.policy -Djava.rmi.server.codebase=file:${CLASS_PATH} -cp ${CLASS_PATH} AbriSimulateur rmi://localhost:2020/abri108
 killall rmiregistry
