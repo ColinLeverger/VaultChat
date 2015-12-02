@@ -78,7 +78,7 @@ public class NoeudCentralBackend extends UnicastRemoteObject implements NoeudCen
 	@Override
 	public void modifierAiguillage(final String depuisUrl, final ArrayList<String> versUrl) throws RemoteException, NoeudCentralException
 	{
-		System.out.print("JE SUIS LE NOEUD CENTRAL, JE ME RECONFIGURE DEPUIS " + depuisUrl + " VERS " + versUrl);
+		System.out.println("JE SUIS LE NOEUD CENTRAL, JE ME RECONFIGURE DEPUIS " + depuisUrl + " VERS " + versUrl);
 		noeudCentral.reconfigurerAiguillage(depuisUrl, versUrl);
 	}
 

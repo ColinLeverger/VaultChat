@@ -208,7 +208,6 @@ public class AbriBackend extends UnicastRemoteObject implements AbriLocalInterfa
 			case SIGNALEMENT_EXISTENCE : // On met à jour notre liste quand quelqu'on nous réponds qu'il éxiste
 				String[] parts = message.getContenu().split(SPLIT_CHAR);
 				String url = parts[0];
-                System.out.println("URL SPLITEE : " + url);
 				String groupe = parts[1];
 				abrisDistants.ajouterAbriDistant(url, groupe);
 				calculCopains();
