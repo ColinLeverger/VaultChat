@@ -5,6 +5,8 @@
  */
 package controle;
 
+import modele.*;
+
 import java.net.MalformedURLException;
 import java.rmi.Naming;
 import java.rmi.NotBoundException;
@@ -12,12 +14,6 @@ import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 import java.util.Map.Entry;
-
-import modele.AbriException;
-import modele.AnnuaireNoeudCentral;
-import modele.Message;
-import modele.NoeudCentral;
-import modele.NoeudCentralException;
 
 /**
  *
@@ -105,9 +101,10 @@ public class NoeudCentralBackend extends UnicastRemoteObject implements NoeudCen
 	}
 
 	@Override
-	// le noeud centrale recoit un message signalant qu'un nouvel abri a rejoint le réseau
+	// le noeud central recoit un message signalant qu'un nouvel abri a rejoint le réseau
 	public void creerAbri(final String urlAbriDistant, final String groupeAbri) throws RemoteException, NotBoundException, MalformedURLException
 	{
+		System.out.println("JE SUIS LE NOEUD, ABRI " +urlAbriDistant+ " VIENS DE S'AJOUTER.");
 		// On mémorise dans l'annuaire du noeud central
 		AbriRemoteInterface abriDistant = (AbriRemoteInterface) Naming.lookup(urlAbriDistant);
 		abris.ajouterAbriDistant(urlAbriDistant, abriDistant);
@@ -115,6 +112,7 @@ public class NoeudCentralBackend extends UnicastRemoteObject implements NoeudCen
 		// On envoie un broadcast à tout les abris éxistants pour signaler la présence du nouveau.
 		for ( Entry<String, AbriRemoteInterface> autreAbri : abris.getAbrisDistants().entrySet() ) {
 			if ( !autreAbri.getKey().equals(urlAbriDistant) ) {
+				System.out.println(autreAbri.getValue() + " RECOIS " +urlAbriDistant);
 				autreAbri.getValue().enregistrerAbri(urlAbriDistant, groupeAbri);
 			}
 		}
@@ -123,6 +121,7 @@ public class NoeudCentralBackend extends UnicastRemoteObject implements NoeudCen
 	@Override
 	public synchronized void demanderSectionCritique(final String url) throws RemoteException
 	{
+		System.out.println("JE SUIS " + url + " ET JE VIENS D'ARRIVER AU NOEUD POUR UNE DEMANDE DE SC");
 		boolean available = sectionCritiqueControleur.demanderSectionCritique(url);
 		if ( available ) { // SC dispo immédiatement
 			try {
@@ -138,6 +137,7 @@ public class NoeudCentralBackend extends UnicastRemoteObject implements NoeudCen
 	@Override
 	public void quitterSectionCritique(final String url) throws RemoteException
 	{
+		System.out.println("JE SUIS " + url + " ET JE VIENS D'ARRIVER AU NOEUD POUR QUITTER LA SC");
 		// On enregistre le fait que l'abris actuel libère la SC
 		String prochain = null;
 		try {
