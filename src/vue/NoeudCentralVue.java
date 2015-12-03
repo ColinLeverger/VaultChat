@@ -5,19 +5,15 @@
  */
 package vue;
 
-import java.awt.Color;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Observable;
-import java.util.Observer;
-
-import javax.swing.JList;
-
 import controle.NoeudCentralBackend;
 import modele.AnnuaireNoeudCentral;
 import modele.NoeudCentral;
 import modele.NoeudCentralException;
+
+import javax.swing.*;
+import java.awt.*;
+import java.util.*;
+import java.util.List;
 
 /**
  *
@@ -98,7 +94,7 @@ public class NoeudCentralVue extends javax.swing.JFrame implements Observer
 
 		} catch ( Exception ex ) {
 			if ( listModel.getSize() == 0 ) {}
-			afficherErreur("Erreur lors de la mise a jour d'une liste", "L'URL \"" + element + "\" n'est pas presente dans la liste.");
+			//afficherErreur("Erreur lors de la mise a jour d'une liste", "L'URL \"" + element + "\" n'est pas presente dans la liste.");//TODO Maëlig
 		}
 	}
 
