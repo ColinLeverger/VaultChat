@@ -24,7 +24,7 @@ public class Abri extends Observable
 	public Abri()
 	{
 		this.connecte = false;
-		this.tampon = new LinkedList();
+		this.tampon = new LinkedList<>();
 		this.groupe = "";
 	}
 
@@ -38,7 +38,7 @@ public class Abri extends Observable
 		this.connecte = false;
 	}
 
-	public void definirGroupe(String groupe)
+	public void definirGroupe(final String groupe)
 	{
 		this.groupe = groupe;
 	}
@@ -58,7 +58,7 @@ public class Abri extends Observable
 		return this.tampon;
 	}
 
-	public void memoriserMessageRecu(Message message)
+	public void memoriserMessageRecu(final Message message)
 	{
 		this.tampon.add(message);
 		notifierObservateurs();

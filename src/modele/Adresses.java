@@ -7,7 +7,7 @@ package modele;
 
 /**
  * Classe contenant les arch�types des adresses RMI
- * 
+ *
  * @author Gw�nol� Lecorv�
  * @author David Guennec
  */

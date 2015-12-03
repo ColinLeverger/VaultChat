@@ -5,15 +5,19 @@
  */
 package vue;
 
+import java.awt.Color;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Observable;
+import java.util.Observer;
+
+import javax.swing.JList;
+
 import controle.NoeudCentralBackend;
 import modele.AnnuaireNoeudCentral;
 import modele.NoeudCentral;
 import modele.NoeudCentralException;
-
-import javax.swing.*;
-import java.awt.*;
-import java.util.*;
-import java.util.List;
 
 /**
  *
@@ -93,8 +97,18 @@ public class NoeudCentralVue extends javax.swing.JFrame implements Observer
 			liste.setSelectedIndices(selectedIndices);
 
 		} catch ( Exception ex ) {
-			if ( listModel.getSize() == 0 ) {}
-			//afficherErreur("Erreur lors de la mise a jour d'une liste", "L'URL \"" + element + "\" n'est pas presente dans la liste.");//TODO Maëlig
+			ex.printStackTrace();
+			if ( listModel.getSize() == 0 ) {
+				/*
+				 * Une exception se situe ici car il n'y a pas de message de
+				 * deconnection, les listes d'abris ne sont pas mise à jour.
+				 * Nous avons masqué l'affichage de l'erreur. Pour régler ce
+				 * problèmme il faudrait faire marcher le mécanisme de priorité
+				 * sur les messages (connection et deconnection plus prioritaire
+				 * que l'envoie d'un signalement de danger)
+				 */
+				//afficherErreur("Erreur lors de la mise a jour d'une liste", "L'URL \"" + element + "\" n'est pas presente dans la liste.");
+			}
 		}
 	}
 

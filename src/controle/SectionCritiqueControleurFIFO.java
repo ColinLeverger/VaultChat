@@ -94,7 +94,7 @@ public class SectionCritiqueControleurFIFO implements ControleurInterface
 	 * attente de la section critique au moment où la quitte.
 	 */
 	@Override
-	public synchronized String quitterSectionCritique(final String urlDemandeur) throws IllegalAccessException // TODO tester comme ça sinon enlever synchronized
+	public synchronized String quitterSectionCritique(final String urlDemandeur) throws IllegalAccessException
 	{
 		// On s'assure que la demande viens bien du bon abri (par acquis de conscience, ce cas ne doit pas être possible !)
 		if ( !this.urlEnSC.equals(urlDemandeur) ) {

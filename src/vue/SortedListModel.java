@@ -15,7 +15,7 @@ import javax.swing.AbstractListModel;
 
 /**
  * Classe qui permet de trier les elements d'une JList
- * 
+ *
  * @author Gwenole Lecorve
  * @author David Guennec
  */

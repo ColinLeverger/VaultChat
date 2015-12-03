@@ -5,18 +5,21 @@
  */
 package vue;
 
+import java.util.ArrayList;
+import java.util.Observable;
+import java.util.Observer;
+
+import javax.swing.JFrame;
+import javax.swing.ListSelectionModel;
+import javax.swing.SwingConstants;
+import javax.swing.text.DefaultCaret;
+import javax.swing.text.html.HTMLDocument;
+import javax.swing.text.html.HTMLEditorKit;
+
 import controle.AbriLocalInterface;
 import modele.Abri;
 import modele.AnnuaireAbri;
 import modele.Message;
-
-import javax.swing.*;
-import javax.swing.text.DefaultCaret;
-import javax.swing.text.html.HTMLDocument;
-import javax.swing.text.html.HTMLEditorKit;
-import java.util.ArrayList;
-import java.util.Observable;
-import java.util.Observer;
 
 /**
  *
@@ -45,8 +48,15 @@ public class AbriVue extends JFrame implements Observer
 				try {
 					AbriVue.this.backend.emettreMessageDanger(AbriVue.this.emissionTextArea.getText());
 				} catch ( Exception ex ) {
+					/*
+					 * Nous avons masqué l'affichage de cette erreur. Un message
+					 * peut se perdre lorsque une connection a lieu pendant
+					 * l'emission en boucle. Pour régler ce problèmme il
+					 * faudrait faire marcher le mécanisme de priorité des
+					 * messages.
+					 */
 					//ex.printStackTrace();
-					//new ErrorDialog(this.parent, "Erreur lors de l'emission du message", ex.getMessage());//TODO Maëlig
+					//new ErrorDialog(this.parent, "Erreur lors de l'emission du message", ex.getMessage());
 				}
 			}
 		}
@@ -219,6 +229,12 @@ public class AbriVue extends JFrame implements Observer
 		try {
 			this.backend.emettreMessageDanger(this.emissionTextArea.getText());
 		} catch ( Exception ex ) {
+			/*
+			 * Nous avons masqué l'affichage de cette erreur. Un message peut se
+			 * perdre lorsque une connection a lieu pendant l'emission en
+			 * boucle. Pour régler ce problèmme il faudrait faire marcher le
+			 * mécanisme de priorité des messages.
+			 */
 			//ex.printStackTrace();
 			//afficherErreur("Erreur lors de l'emission du message", ex.getMessage()); //TODO Maëlig
 		}

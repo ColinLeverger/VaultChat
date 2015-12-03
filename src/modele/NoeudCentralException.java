@@ -7,7 +7,7 @@ package modele;
 
 /**
  * Classe pour les exceptions emanant du noeud central
- * 
+ *
  * @author Gwenole Lecorve
  * @author David Guennec
  */
