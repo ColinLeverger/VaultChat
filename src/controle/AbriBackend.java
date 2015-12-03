@@ -137,7 +137,7 @@ public class AbriBackend extends UnicastRemoteObject implements AbriLocalInterfa
 	 * rejoins le réseau
 	 */
 	@Override
-	public void connecterAbri() throws AbriException, RemoteException, MalformedURLException, NotBoundException, NoeudCentralException, IllegalAccessException
+	public void demanderConnection() throws AbriException, RemoteException, MalformedURLException, NotBoundException, NoeudCentralException, IllegalAccessException
 	{
 		// Annuaire RMI
 		Naming.rebind(this.notreURL, this);

@@ -30,7 +30,7 @@ public interface AbriLocalInterface
 {
 	public void attribuerGroupe(String groupe);
 
-	public void connecterAbri() throws AbriException, RemoteException, MalformedURLException, NotBoundException, NoeudCentralException, IllegalAccessException;
+	public void demanderConnection() throws AbriException, RemoteException, MalformedURLException, NotBoundException, NoeudCentralException, IllegalAccessException;
 
 	public void demanderDeconexion() throws AbriException, RemoteException, MalformedURLException, NotBoundException, NoeudCentralException, IllegalAccessException;
 
