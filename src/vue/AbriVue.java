@@ -197,7 +197,7 @@ public class AbriVue extends JFrame implements Observer
 		} else {
 			try {
 				this.backend.attribuerGroupe((String) this.groupsList.getSelectedValue());
-				this.backend.connecterAbri();
+				this.backend.demanderConnection();
 				this.etatLabel.setText("<html><a color=green>Connecte</a></html>");
 				this.connectionBouton.setText("Deconnecter l'abri du reseau");
 				ajusterEtatBoutons();
