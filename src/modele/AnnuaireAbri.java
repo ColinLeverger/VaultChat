@@ -11,7 +11,7 @@ import java.util.Observable;
 
 /**
  * Classse permettant de modéliser un annuaire dans un abri. On ne doit pas
- * mémoriser d'accès aux autres AbriRemoteInterface comme c'était précédement le
+ * mémoriser d'accès aux autres AbriRemoteInterface comme c'était précédemment le
  * cas, car nous voulons fonctionner en totalement centralisé. Nous avons
  * cependant besoin de mémoriser le groupe de chaque abri.
  *

@@ -10,8 +10,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Contrôleur chargé de gérer la section critique sur le noeud central. Ce
- * controleur est unique dans le système et se situe sur le noeud central. Il
- * est chargé d'éxécuté notre algorithme d'exclusion mutuelle. Nous avons
+ * contrôleur est unique dans le système et se situe sur le noeud central. Il
+ * est chargé d'exécuter notre algorithme d'exclusion mutuelle. Nous avons
  * choisis d'implémenter la gestion de la section critique sous la forme d'une
  * file FIFO.
  *
@@ -26,19 +26,19 @@ public class SectionCritiqueControleurFIFO implements ControleurInterface
 
 	/**
 	 * Liste modélisant une structure FIFO pour gérer les demandes de section
-	 * critique. On ajoute en tête (first) et on prends en queu (last).
+	 * critique. On ajoute en tête (first) et on prend en queu (last).
 	 */
 	private LinkedList<String> listeAttente;
 
 	/**
-	 * Mémorise l'adresse de l'abri qui est acctuellement dans la section
+	 * Mémorise l'adresse de l'abri qui est actuellement dans la section
 	 * critique. Null si la section critique est libre.
 	 */
 	private String urlEnSC;
 
 	/**
-	 * La classe AtomicBoolean permet de modéliser un type booleen sécurisé
-	 * quand aux accès concurents. Ici on mémorise l'état de la section critique
+	 * La classe AtomicBoolean permet de modéliser un type booléen sécurisé
+	 * quand aux accès concurrents. Ici on mémorise l'état de la section critique
 	 * (utilisée ou non à un instant donné). Reviens également à savoir si
 	 * 'urlEnSC == null'.
 	 */
@@ -59,17 +59,17 @@ public class SectionCritiqueControleurFIFO implements ControleurInterface
 	 * Retourne vrai si la section critique est immédiatement disponible, faux
 	 * sinon. Si la section critique est disponible, on la passe en non-libre et
 	 * on mémorise l'abri utilisateur. Si elle n'est pas disponible, on ajoute
-	 * l'abri demandeur dans la liste d'attente (si il ne l'est pas déjà).
+	 * l'abri demandeur dans la liste d'attente (s’il ne l'est pas déjà).
 	 */
 	@Override
 	public synchronized boolean demanderSectionCritique(final String urlDemandeur)
 	{
 		assert urlDemandeur != null;
-		if ( !this.used.get() ) { // Section critique est acctuellement libre
+		if ( !this.used.get() ) { // Section critique est actuellement libre
 			this.used.set(true);
 			setUrlEnSC(urlDemandeur);
 		} else {
-			//	synchronized ( listeAttente ) { // Protège d'accès concurents sur la liste d'attente
+			//	synchronized ( listeAttente ) { // Protège d'accès concurrents sur la liste d'attente
 			// Maximum 1 fois dans la liste d'attente. Ne doit pas arriver car cas déjà géré dans l'abris (boolean demandeSC)
 			if ( !this.listeAttente.contains(urlDemandeur) ) {
 				this.listeAttente.addFirst(urlDemandeur);
@@ -96,14 +96,14 @@ public class SectionCritiqueControleurFIFO implements ControleurInterface
 	@Override
 	public synchronized String quitterSectionCritique(final String urlDemandeur) throws IllegalAccessException
 	{
-		// On s'assure que la demande viens bien du bon abri (par acquis de conscience, ce cas ne doit pas être possible !)
+		// On s'assure que la demande vient bien du bon abri (par acquit de conscience, ce cas ne doit pas être possible !)
 		if ( !this.urlEnSC.equals(urlDemandeur) ) {
 			throw new IllegalAccessException("Pas le bon abris qui demande à quitter la SC");
 		}
 
 		setUrlEnSC(null);
 
-		// Regarde si quelqu'un attends la SC
+		// Regarde si quelqu'un attend la SC
 		String prochain = null;
 		//synchronized ( listeAttente ) {
 		if ( !this.listeAttente.isEmpty() ) {

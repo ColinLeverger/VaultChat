@@ -13,7 +13,7 @@ import controle.AbriRemoteInterface;
 
 /**
  * Anciennement nommé "Annuaire". Modélise l'annuaire du noeud central. L'accès
- * à cet annuaire est protégé contre les accès concurents à l'aide de blocs
+ * à cet annuaire est protégés contre les accès concurents à l'aide de blocs
  * 'synchronized'.
  *
  * @author Gwenole Lecorve

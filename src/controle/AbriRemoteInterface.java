@@ -18,14 +18,14 @@ import modele.NoeudCentralException;
  * @author Maelig Nantel
  * @author Colin Leverger
  *
- *         Classe représentant les appels distant pouvant être éffectués sur un
+ *         Classe représentant les appels distants pouvant être effectués sur un
  *         abri à travers Java RMI. Dans notre conception, nous partons du
- *         principe que la seul intéraction entrante possible est la réception
+ *         principe que la seule interaction entrante possible est la réception
  *         d'un 'message'. Le traitement à appliquer va alors différer en
  *         fonction du type de message recu (voir implémentation). <br>
  *         Cette interface doit être publiée dans l'annuaire RMI à l'aide d'une
- *         adresse unique afin d'être récupérée par d'autre sites distants.
- *         C'est Java RMI qui s'occupe de gérer l'instance de cette interface.
+ *         adresse unique afin d'être récupérée par d'autres sites distants.
+ *         C'est Java RMI qui s'occupent de gérer l'instance de cette interface.
  *         Pour la documentation des méthodes, se référer à la classe
  *         d'implémentation.
  */

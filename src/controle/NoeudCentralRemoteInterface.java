@@ -16,7 +16,7 @@ import modele.Message;
 import modele.NoeudCentralException;
 
 /**
- * Classe modélisant les appels pouvant être éffectués sur le noeud central
+ * Classe modélisant les appels pouvant être effectués sur le noeud central
  * depuis un abri du réseau via Java RMI.
  *
  * @author Gwenole Lecorve

@@ -22,7 +22,7 @@ import modele.NoeudCentralException;
  *
  *         Classe permettant de communiquer de manière locale avec notre abri.
  *         Utilisée pour la gestion des vues et donc non liée à RMI. La vue gère
- *         les intéractions avec l'utilisateur. <br>
+ *         les interactions avec l'utilisateur. <br>
  *         Pour la documentation des méthodes, se référer à la classe
  *         d'implémentation.
  */

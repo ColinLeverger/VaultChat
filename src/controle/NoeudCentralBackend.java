@@ -18,11 +18,11 @@ import modele.NoeudCentralException;
 /**
  * Classe permettant de gérer un noeud central dans un réseau totalement
  * centralisé. Il a deux objectifs: <br>
- * - Gérer l'accès à la section critique, c'est à dire qu'un seul noeud à la
+ * - Gérer l'accès à la section critique, c'est-à-dire qu'un seul noeud à la
  * fois peut avoir un plein accès au noeud central <br>
  * - Faire le "passe-plat" pour transmettre des messages entre différents abris.
- * Le noeud central connais l'enssemble des abris connectés au réseau mais n'a
- * pas d'informations concernant les groupe de dangers.
+ * Le noeud central connaît l'ensemble des abris connectés au réseau, mais n'a
+ * pas d'informations concernant les groupes de dangers.
  *
  * @author Gwenole Lecorve
  * @author David Guennec
@@ -45,7 +45,7 @@ public class NoeudCentralBackend extends UnicastRemoteObject implements NoeudCen
 	private final SectionCritiqueControleurFIFO sectionCritiqueControleur;
 
 	/**
-	 * Annuaire associat pour chaque adresse URL une instance
+	 * Annuaire associant pour chaque adresse URL une instance
 	 * d'AbriRemoteInterface afin de pouvoir communiquer avec les abris. Tous
 	 * les abris connectés au réseau doivent se trouver dans cet annuaire.
 	 */
@@ -61,7 +61,7 @@ public class NoeudCentralBackend extends UnicastRemoteObject implements NoeudCen
 	}
 
 	/**
-	 * Le noeud central recoit un message de la part d'un nouvel abri signalant
+	 * Le noeud central reçoit un message de la part d'un nouvel abri signalant
 	 * qu'il viens de rejoindre le réseau. Il doit l'ajouter à son annuaire puis
 	 * signaler l'éxistance du nouveau à tous les autres abris du réseau.
 	 */
@@ -69,7 +69,7 @@ public class NoeudCentralBackend extends UnicastRemoteObject implements NoeudCen
 	public void connexionAbri(final String urlNouveau, final String groupeNouveau) throws RemoteException, NotBoundException, MalformedURLException, AbriException, NoeudCentralException, IllegalAccessException
 	{
 		System.out.println("JE SUIS LE NOEUD, ABRI " + urlNouveau + " VIENS DE S'AJOUTER, JE DOIS PREVENIR " + this.abris.getAbrisDistants().size() + " AUTRES ABRIS.");
-		// Il faut récupérer la remote interface de ce nouvel abris dans l'annuaire RMI
+		// Il faut récupérer la remote interface de ce nouvel abri dans l'annuaire RMI
 		AbriRemoteInterface remoteNouvelAbri = (AbriRemoteInterface) Naming.lookup(urlNouveau);
 		this.abris.ajouterAbriDistant(urlNouveau, remoteNouvelAbri);
 
@@ -84,8 +84,8 @@ public class NoeudCentralBackend extends UnicastRemoteObject implements NoeudCen
 
 	/**
 	 * Le noeud central est informé qu'un abri se déconnecte du réseau.Il doit
-	 * alors prévenir l'enssemble des autres abris pour qu'ils puissent
-	 * maintenir leur conaissance du réseau à jour, puis mettre à son tour à
+	 * alors prévenir l'ensemble des autres abris pour qu'ils puissent
+	 * maintenir leur connaissance du réseau à jour, puis mettre à son tour à
 	 * jour son annuaire.
 	 */
 	@Override
@@ -102,11 +102,11 @@ public class NoeudCentralBackend extends UnicastRemoteObject implements NoeudCen
 	}
 
 	/**
-	 * Méthode éxécutée lorsque le noeud central recoit une demande d'un abri
+	 * Méthode exécutée lorsque le noeud central reçoit une demande d'un abri
 	 * pour entrer en section critique. On doit: <br>
-	 * Déléguer la gestion au contrôleur qui nous répondra si l'abris peut
+	 * Déléguer la gestion au contrôleur qui nous répondra si l'abri peut
 	 * immédiatement ou non entrer en SC. Si c'est le cas, on doit informer
-	 * l'abris.
+	 * l'abri.
 	 */
 	@Override
 	public synchronized void demanderSectionCritique(final String urlAbriDemandeur) throws RemoteException, AbriException, NoeudCentralException, IllegalAccessException
@@ -147,17 +147,17 @@ public class NoeudCentralBackend extends UnicastRemoteObject implements NoeudCen
 	// SECTION CRITIQUE
 	// ================
 	/**
-	 * La logique de getion de la SC est proposée dans
+	 * La logique de gestion de la SC est proposée dans
 	 * SectionCritiqueControleur. Cependant, les demandes des abris arrivent
 	 * dans la classe NoeudCentralBackend qui doit se charger de faire le relai
-	 * vers le controleur. Il doit également se charger d'informer l'abri qui
+	 * vers le contrôleur. Il doit également se charger d'informer l'abri qui
 	 * dispose d'un accès à la section critique.
 	 */
 
 	/**
-	 * Méthode permettant de définir l'emetteur et le(s) destinataires d'un
+	 * Méthode permettant de définir l'émetteur et le(s) destinataire d'un
 	 * message avant envoi. Doit être appelé au bon moment pour éviter qu'un
-	 * message n'arrive à un mauvais destinataire ! L'emeteur est forcément
+	 * message n'arrive à un mauvais destinataire ! L'émetteur est forcément
 	 * unique alors que les destinataires peuvent être nombreux.
 	 */
 	@Override
@@ -168,10 +168,10 @@ public class NoeudCentralBackend extends UnicastRemoteObject implements NoeudCen
 	}
 
 	/**
-	 * Méthode éxétuée lorsque le noeud central recoit une demande d'un abri
+	 * Méthode éxétuée lorsque le noeud central reçoit une demande d'un abri
 	 * pour quitter la section critique. On doit: <br>
-	 * - Déléguer la gestion au controleur qui nous informera si un autre abri
-	 * était en attente de la section critiquie l'obtient à son tour. Si c'est
+	 * - Déléguer la gestion au contrôleur qui nous informera si un autre abri
+	 * était en attente de la section critique l'obtient à son tour. Si c'est
 	 * le cas, nous devons prévenir cet abri.
 	 */
 	@Override
@@ -191,12 +191,12 @@ public class NoeudCentralBackend extends UnicastRemoteObject implements NoeudCen
 
 	/**
 	 * Effectue le passe plat pour la transmission d'un message. L'aiguillage
-	 * est tout d'abord modifié directement dans le noed à partir des
-	 * informations présente dans le corps du message à transmettre (nous avons
+	 * est tout d'abord modifié directement dans le noeud à partir des
+	 * informations présentes dans le corps du message à transmettre (nous avons
 	 * choisis de placer l'appel ici et donc de ne pas demander à l'abri de
 	 * faire la demande de modification d'aiguillage). L'envoi d'un message
 	 * consiste en fait à appeler la méthode "recevoirMessage" d'un abri via
-	 * l'instance d'AbriRemoteInterface. C'est le principe fondamentale de Java
+	 * l'instance d'AbriRemoteInterface. C'est le principe fondamental de Java
 	 * RMI.
 	 */
 	@Override

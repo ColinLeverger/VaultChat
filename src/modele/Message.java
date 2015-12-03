@@ -11,7 +11,7 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Classe representant une information envoyee par un abri vers un autre
+ * Classe représentant une information envoyée par un abri vers un autre
  *
  * @author Gwenole Lecorve
  * @author David Guennec

@@ -1,6 +1,8 @@
 
 package controle;
 
+import modele.*;
+
 import java.net.MalformedURLException;
 import java.rmi.Naming;
 import java.rmi.NotBoundException;
@@ -10,24 +12,16 @@ import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 import java.util.List;
 
-import modele.Abri;
-import modele.AbriException;
-import modele.Adresses;
-import modele.AnnuaireAbri;
-import modele.Message;
-import modele.MessageType;
-import modele.NoeudCentralException;
-
 /**
  * @author Gwenole Lecorve
  * @author David Guennec
  * @author Colin Leverger
  * @author Maelig Nantel
  *
- *         Class permettant de gérer un abri dans un réseau totalement
+ *         Classe permettant de gérer un abri dans un réseau totalement
  *         centralisé autour d'un noeud central. Les seuls messages pouvant
- *         arriver sur cette classe proviennent d'un unique noeud central. Il
- *         n'est donc pas nécéssaire de gérer la concurence des accès à l'aide
+ *         arriver sur cette classe provient d'un unique noeud central. Il
+ *         n'est donc pas nécessaire de gérer la concurrence des accès à l'aide
  *         de blocs ou de méthode 'synchronized' ici.
  */
 public class AbriBackend extends UnicastRemoteObject implements AbriLocalInterface, AbriRemoteInterface
@@ -38,7 +32,7 @@ public class AbriBackend extends UnicastRemoteObject implements AbriLocalInterfa
 	private static final String RMI_ADDRESS_PREFIX = "rmi:";
 
 	/**
-	 * Notre adresse permettant de nous contacter depuis d'autre sites. C'est
+	 * Notre adresse permettant de nous contacter depuis d'autres sites. C'est
 	 * l'adresse utilisée pour publier notre AbriRemoteInterface dans l'annuaire
 	 * RMI.
 	 */
@@ -49,7 +43,7 @@ public class AbriBackend extends UnicastRemoteObject implements AbriLocalInterfa
 	/**
 	 * Annuaire associant à l'adresse d'un abri son groupe (cette class a donc
 	 * été modifié par nos soins pour ne pas mémoriser de AbriRemoteInterface
-	 * d'un abri distant (nous somme en mode totalement centralisé)
+	 * d'un abri distant (nous sommes en mode totalement centralisé)
 	 * L'intégralité des abris du connectés au réseau sont présent dans cette
 	 * liste.
 	 */
@@ -62,12 +56,12 @@ public class AbriBackend extends UnicastRemoteObject implements AbriLocalInterfa
 	private ArrayList<String> copains;
 
 	/**
-	 * Pour l'envoie de message, il est nécéssaire de disposer de la section
-	 * critique. Nous avons choisis de ne pas "attendre" de disposer de celle ci
-	 * avant de pouvoir prévoir un envoie. A chaque instant, il est possible de
+	 * Pour l'envoi de message, il est nécessaire de disposer de la section
+	 * critique. Nous avons choisi de ne pas "attendre" de disposer de celle-ci
+	 * avant de pouvoir prévoir un envoi. A chaque instant, il est possible de
 	 * demander l'envoi d'un message. Ce dernier sera alors stocké dans une
 	 * mémoire tampon. Dès que nous disposerons de la section critique,
-	 * l'enssemble des messages en attente seront envoyés à leur destinataires
+	 * l'ensemble des messages en attente sera envoyé à leurs destinataires
 	 * respectifs.
 	 */
 	private List<Message> messagesEnAttente;
@@ -108,7 +102,7 @@ public class AbriBackend extends UnicastRemoteObject implements AbriLocalInterfa
 
 	/**
 	 * Ajout d'un message dans un tampon en attendant leur envoi effectif. Lors
-	 * d'un ajout, si nous n'étions pas déjà en attente de la section critique,
+	 * d'un ajout, si nous n'étions pas déjà en attente de la section critique
 	 * on le devient.
 	 */
 	private void ajouterMesageTampon(final Message message) throws RemoteException, AbriException, NoeudCentralException, IllegalAccessException
@@ -142,7 +136,7 @@ public class AbriBackend extends UnicastRemoteObject implements AbriLocalInterfa
 		// Annuaire RMI
 		Naming.rebind(this.notreURL, this);
 
-		// Initialisation du noeud central pour notre abri (les autres abri seront initialisé lors d'une réception d'un message du noeud central, on est en décentralisé).
+		// Initialisation du noeud central pour notre abri (les autres abris seront initialisés lors d'une réception d'un message du noeud central, on est en décentralisé).
 		for ( String name : Naming.list(Adresses.archetypeAdresseNoeudCentral()) ) { // Itère sur tout ce qui est publié dans l'annuaire RMI
 			name = RMI_ADDRESS_PREFIX + name;
 			Remote remote = Naming.lookup(name);
@@ -164,10 +158,10 @@ public class AbriBackend extends UnicastRemoteObject implements AbriLocalInterfa
 	/**
 	 * Méthode utilisée pour demander à se déconnecter du réseau. Nous sommes un
 	 * abri et nous demandons à quitter le réseau. Nous devons donc: <br>
-	 * - Prévenir le noeud central que nous n'éxistons plus <br>
-	 * - Vider nos paramètres (listes d'abris éxistants, de copains et
+	 * - Prévenir le noeud central que nous n'existons plus <br>
+	 * - Vider nos paramètres (listes d'abris existants, de copains et
 	 * informations sur le noeud central. Si on souhaite à nouveau rejoindre le
-	 * réseau, ces informations auront potentiellement évoluée et afin de ne pas
+	 * réseau, ces informations auront potentiellement évolué et afin de ne pas
 	 * avoir d'incohérence, il faudra les redemander. <br>
 	 * - Se retirer de l'annuaire RMI
 	 */
@@ -188,10 +182,10 @@ public class AbriBackend extends UnicastRemoteObject implements AbriLocalInterfa
 	}
 
 	/**
-	 * Envoie d'un message indiquant un danger pour l'enssemble du groupe auquel
+	 * Envoi d'un message indiquant un danger pour l'ensemble du groupe auquel
 	 * on appartient. L'ajout d'un message consiste à ajouter le message dans un
-	 * tampon (ce qui provoquera une demande de section critique). L'envoie sera
-	 * réellement éffectué que lorsque la section critique sera accordée à notre
+	 * tampon (ce qui provoquera une demande de section critique). L'envoi sera
+	 * réellement effectué que lorsque la section critique sera accordée à notre
 	 * abri.
 	 */
 	@Override
@@ -202,12 +196,12 @@ public class AbriBackend extends UnicastRemoteObject implements AbriLocalInterfa
 	}
 
 	/**
-	 * Méthode éxécutée lorsque le noeud central nous informe qu'un nouvel abri
-	 * a rejoins le réseau. Nous devons donc:<br>
+	 * Méthode exécutée lorsque le noeud central nous informe qu'un nouvel abri
+	 * a rejoint le réseau. Nous devons donc:<br>
 	 * - Ajouter ce nouvel abri à notre annuaire et si besoin à notre liste de
 	 * copains <br>
-	 * - Renvoyer un message "d'acquitement" à ce nouvel abris (à travers le
-	 * noeud central) permettant ainsi que lui signaler notre éxistence dans le
+	 * - Renvoyer un message "d'acquittement" à ce nouvel abri (à travers le
+	 * noeud central) permettant ainsi que lui signaler notre existence dans le
 	 * réseau.
 	 */
 	private void enregistrerNouvelAbri(final String urlNouveau, final String groupeNouveau) throws RemoteException, AbriException, NoeudCentralException, IllegalAccessException
@@ -219,12 +213,12 @@ public class AbriBackend extends UnicastRemoteObject implements AbriLocalInterfa
 		}
 
 		/*
-		 * Pour signaler notre éxistance, on doit envoyer notre adresse et notre
+		 * Pour signaler notre existence, on doit envoyer notre adresse et notre
 		 * groupe. La classe Message actuelle ne permet pas de passer des
 		 * paramètres multiples. Pour éviter cette modification du modèle, nous
 		 * avons décidé de regrouper les deux informations dans le champ
 		 * contenu. Le destinataire pourra simplement récupérer les deux
-		 * paramètres en éffectuant un split sur SPLIT_CHAR
+		 * paramètres en effectuant un split sur SPLIT_CHAR
 		 */
 		String contenu = this.notreURL + SPLIT_CHAR + this.notreModele.donnerGroupe();
 		ajouterMesageTampon(new Message(this.notreURL, urlNouveau, contenu, MessageType.SIGNALEMENT_EXISTENCE));
@@ -249,9 +243,9 @@ public class AbriBackend extends UnicastRemoteObject implements AbriLocalInterfa
 
 	@Override
 	/**
-	 * Retourne l'enssemble des abris du réseau connus. Ne retourne pas
-	 * uniquement nos copains, donc dans les vues c'est l'enssemble des abris
-	 * qui seront affichés (fonctionalité déjà proposé dans le code fournis pour
+	 * Retourne l'ensemble des abris du réseau connus. Ne retourne pas
+	 * uniquement nos copains, donc dans les vues c'est l'ensemble des abris
+	 * qui seront affichés (fonctionnalité déjà proposée dans le code fourni pour
 	 * ce projet).
 	 */
 	public AnnuaireAbri getAnnuaire()
@@ -276,22 +270,22 @@ public class AbriBackend extends UnicastRemoteObject implements AbriLocalInterfa
 	}
 
 	/**
-	 * Méthode éxécutée lorsque le noeud central nous informe qu'un abri
-	 * éxistant dans le réseau s'est déconnecté. Nous devons donc le retirer de
+	 * Méthode exécutée lorsque le noeud central nous informe qu'un abri
+	 * existant dans le réseau s'est déconnecté. Nous devons donc le retirer de
 	 * notre annuaire et si besoin, de notre liste de copains.
 	 */
 	private void oublierAbriExistant(final String urlAOublier)
 	{
 		System.out.println("RETRAIT DE " + urlAOublier + " DANS LISTE ABRIS DISTANTS DE " + this.notreURL);
 		this.abrisDistants.retirerAbriDistant(urlAOublier);
-		this.copains.remove(urlAOublier); // Ne fait rien si l'abri que l'on déconnecte n'étais pas un copain donc pas besoin de faire de vérifications.
+		this.copains.remove(urlAOublier); // Ne fait rien si l'abri que l'on déconnecte n'était pas un copain donc pas besoin de faire de vérifications.
 	}
 
 	/**
 	 * Méthode permettant de recevoir un message ayant transité par le noeud
 	 * central. Un message peut être de plusieurs types (voir le type énuméré
 	 * MessageType). On doit: <br>
-	 * - Vérifier que nous sommes bien supposer recevoir le message (on ne doit
+	 * - Vérifier que nous sommes bien supposés recevoir le message (on ne doit
 	 * pas recevoir un message d'un autre groupe) <br>
 	 * - Traiter le message en fonction de son type. Voir la documentation des
 	 * méthodes associées.
@@ -307,7 +301,7 @@ public class AbriBackend extends UnicastRemoteObject implements AbriLocalInterfa
 			case SIGNALEMENT_DANGER : // Le noeud cental nous indique qu'un abri de notre groupe nous signale un danger
 				this.notreModele.memoriserMessageRecu(messageRecu); // Ajout à la liste des messages que l'on a reçues
 				break;
-			case SIGNALEMENT_EXISTENCE : // On a rejoins le réseau récemment et un autre abri du réseau nous signale son éxistance.
+			case SIGNALEMENT_EXISTENCE : // On a rejoins le réseau récemment et un autre abri du réseau nous signale son existence.
 				// Voir méthode 'enregistrerNouvelAbri' pour cette partie.
 				String[] parts = messageRecu.getContenu().split(SPLIT_CHAR);
 				String url = parts[0];
@@ -317,7 +311,7 @@ public class AbriBackend extends UnicastRemoteObject implements AbriLocalInterfa
 				 * On l'ajoute à notre liste d'abris connus et si besoin à notre
 				 * liste de copains. Différent de la méthode
 				 * enregistrerNouvelAbri car ici on est récepteur de la réponse
-				 * d'acquitement.
+				 * d'acquittement.
 				 */
 				this.abrisDistants.ajouterAbriDistant(url, groupe);
 				if ( groupe.equals(this.notreModele.donnerGroupe()) ) {
@@ -339,7 +333,7 @@ public class AbriBackend extends UnicastRemoteObject implements AbriLocalInterfa
 	}
 
 	/**
-	 * Méthode éxécutée lorsque l'algorithme d'exclusion mutuelle tournant sur
+	 * Méthode exécutée lorsque l'algorithme d'exclusion mutuelle tournant sur
 	 * le noeud central nous indique que nous pouvons utiliser la section
 	 * critique. Nous devons donc: <br>
 	 * - Réaliser l'envoi de tous les messages de notre tampon (on les transmet
@@ -348,7 +342,7 @@ public class AbriBackend extends UnicastRemoteObject implements AbriLocalInterfa
 	 * section critique le temps le plus court possible)<br>
 	 * <br>
 	 * Limitation possible: Si nous souhaitons envoyer un très grand nombre de
-	 * messages et que nous devons attendre un certains temps pour avoir la
+	 * messages et que nous devons attendre un certain temps pour avoir la
 	 * section critique, il est possible que le tampon soit surchargé. Ce cas
 	 * reste cependant très peu probable.
 	 */
@@ -356,14 +350,14 @@ public class AbriBackend extends UnicastRemoteObject implements AbriLocalInterfa
 	{
 		System.out.println("ENTREE EN SC DE : " + this.notreURL);
 		/*
-		 * Block try-finally afin de garantir que quoique il se passe pendant
+		 * Block try-finally afin de garantir que quoiqu’il se passe pendant
 		 * l'accès à la section critique, elle sera libérée (sauf une
 		 * RemoteException liée à une coupure réseau sur l'abri... c'est
 		 * l'inconvénient du centralisé !)
 		 */
 		try {
 			this.demandeSC = false;
-			// On transmet tout les messages en attentes... pour le moment aucune priorité n'est gérée
+			// On transmet tous les messages en attentes... pour le moment aucune priorité n'est gérée
 			for ( Message message : getMessagesEnAttente() ) {
 				System.err.println("ENVOIE D'UN MESSAGE DEPUIS " + message.getUrlEmetteur() + " VERS " + message.getUrlDestinataire() + " AVEC POUR CONTENU: " + message.getContenu());
 				this.noeudRemote.transmettreMessage(message);
