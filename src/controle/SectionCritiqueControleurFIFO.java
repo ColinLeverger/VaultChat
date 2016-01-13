@@ -15,8 +15,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * choisis d'implémenter la gestion de la section critique sous la forme d'une
  * file FIFO.
  *
- * @author Gwenole Lecorve
- * @author David Guennec
  * @author Maelig Nantel
  * @author Colin Leverger
  */
@@ -69,12 +67,10 @@ public class SectionCritiqueControleurFIFO implements ControleurInterface
 			this.used.set(true);
 			setUrlEnSC(urlDemandeur);
 		} else {
-			//	synchronized ( listeAttente ) { // Protège d'accès concurrents sur la liste d'attente
 			// Maximum 1 fois dans la liste d'attente. Ne doit pas arriver car cas déjà géré dans l'abris (boolean demandeSC)
 			if ( !this.listeAttente.contains(urlDemandeur) ) {
 				this.listeAttente.addFirst(urlDemandeur);
 			}
-			//	}
 		}
 		return this.used.get();
 	}
@@ -105,10 +101,8 @@ public class SectionCritiqueControleurFIFO implements ControleurInterface
 
 		// Regarde si quelqu'un attend la SC
 		String prochain = null;
-		//synchronized ( listeAttente ) {
 		if ( !this.listeAttente.isEmpty() ) {
 			prochain = this.listeAttente.removeLast(); // removeLast pour récupérer tout en retirant de la liste
-			//	}
 		}
 		return prochain;
 	}
